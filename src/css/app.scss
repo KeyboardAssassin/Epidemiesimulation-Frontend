@@ -1,0 +1,26 @@
+// app global css in SCSS form
+.column {
+  float: left;
+  width: 50%;
+  text-align: center;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.column-footer {
+    float: left;
+    width: 20%;
+    text-align: center;
+  }
+  
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
