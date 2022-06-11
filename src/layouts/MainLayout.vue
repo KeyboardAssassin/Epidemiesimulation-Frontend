@@ -4,6 +4,7 @@
       <q-toolbar>
         <q-toolbar-title>
           <center>Epidemie-Simulation</center>
+          Tag: {{ day }}
         </q-toolbar-title>
 
         <q-btn dense flat round icon="menu" @click="toggleRightDrawer" />
@@ -27,6 +28,7 @@
         color="amber"
         q-virtual-scroll--skip
         v-model:pagination="pagination"
+        :key="componentKey"
       ></q-table>
     </q-drawer>
 
@@ -40,8 +42,6 @@
           Simulation erfolgreich gestartet!
         </q-card-section>
 
-        Tag: {{ day }}
-
         <q-card-actions align="right">
           <q-btn flat label="OK" color="primary" v-close-popup />
         </q-card-actions>
@@ -49,6 +49,20 @@
     </q-dialog>
 
     <q-page-container>
+      <div class="q-px-lg q-pt-md q-pb-xl">
+        <q-slider
+          @change="changeSpeed(model)"
+          class="q-mt-xl"
+          v-model="model"
+          color="blue"
+          markers
+          :marker-labels="fnMarkerLabel"
+          :min="0"
+          :max="10"
+          :disable="!simulationstarted"
+        />
+      </div>
+
       <center>
         <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
       </center>
@@ -85,7 +99,7 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 
 const columns = [
@@ -178,6 +192,7 @@ export default {
   data() {
     return {
       submitting: false,
+      simulationstarted: false,
       interval: 1500,
       incidence_thüringen: 0,
       incidence_bayern: 0,
@@ -196,9 +211,12 @@ export default {
       incidence_mecklenburg_vor: 0,
       incidence_sachsen_anhalt: 0,
       day: 0,
+      componentKey: 0,
     };
   },
   setup() {
+    const model = ref(2);
+    const priceModel = ref(4);
     const rightDrawerOpen = ref(false);
 
     return {
@@ -213,6 +231,10 @@ export default {
       address: ref(""),
       columns,
       rows,
+      model,
+      fnMarkerLabel: (val) => `${10 * val}%`,
+      priceModel,
+      priceLabel: computed(() => `$ ${priceModel.value}`),
     };
   },
   methods: {
@@ -220,8 +242,10 @@ export default {
       axios.get("/api/startsimulation", "");
       this.startInterval();
       this.submitting = true;
+      this.simulationstarted = true;
       this.alert = true;
-      this.getAllStates();
+      this.getAllStates(this.interval);
+      this.enableSlider();
     },
     getAllStates() {
       const parameter = new URLSearchParams();
@@ -287,6 +311,8 @@ export default {
           .then((response) => (this.incidence_sachsen_anhalt = response.data));
 
         this.refreshList();
+        this.refreshDay();
+        this.forceRerender();
       }, 1500);
     },
     startInterval() {},
@@ -359,10 +385,21 @@ export default {
           incidence: this.incidence_sachsen_anhalt,
         },
       ];
-      this.day = this.day++;
-
-      console.log(this.rows);
     },
+    refreshDay() {
+      axios
+        .get("/api/getcurrentday")
+        .then((response) => (this.day = response.data));
+    },
+    forceRerender() {
+      this.componentKey += 1;
+    },
+    changeSpeed(speed) {
+      let newInterval = (11 - speed) * 400;
+      this.interval = newInterval;
+      axios.get("/api/changespeed?speed=" + newInterval);
+    },
+    enableSlider() {},
   },
 };
 </script>
