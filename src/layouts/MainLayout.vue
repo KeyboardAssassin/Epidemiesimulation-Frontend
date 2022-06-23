@@ -3,7 +3,7 @@
     <q-header elevated class="bg-primary text-white" height-hint="98">
       <q-toolbar>
         <q-toolbar-title>
-          <center>Epidemie-Simulation</center>
+          <div class="title">Epidemie-Simulation</div>
           Tag: {{ day }}
         </q-toolbar-title>
 
@@ -48,26 +48,27 @@
       </q-card>
     </q-dialog>
 
-    <q-page-container>
-      <div class="q-px-lg q-pt-md q-pb-xl">
-        <q-slider
-          @change="changeSpeed(model)"
-          class="q-mt-xl"
-          v-model="model"
-          color="blue"
-          markers
-          :marker-labels="fnMarkerLabel"
-          :min="0"
-          :max="10"
-          :disable="!simulationstarted"
-        />
+    <q-page-container
+      style="width: 60%; margin-right: 60%; margin-left: 40%; margin-top: 0"
+    >
+      <q-slider
+        @change="changeSpeed(model)"
+        class="q-mt-xl"
+        v-model="model"
+        color="blue"
+        markers
+        :marker-labels="fnMarkerLabel"
+        :min="0"
+        :max="10"
+        :disable="!simulationstarted"
+      />
+
+      <div class="map">
+        <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
       </div>
 
-      <center>
-        <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
-      </center>
       <br /><br />
-      <center>
+      <div class="controlling">
         <q-btn
           :loading="submitting"
           id="simulation-button"
@@ -75,7 +76,7 @@
           color="positive"
           @click="startSimulation()"
         />
-      </center>
+      </div>
     </q-page-container>
 
     <q-footer elevated class="bg-grey-8 text-white">

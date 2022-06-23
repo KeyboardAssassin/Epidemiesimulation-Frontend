@@ -13,14 +13,31 @@
 }
 
 .column-footer {
-    float: left;
-    width: 20%;
-    text-align: center;
-  }
-  
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
+  float: left;
+  width: 20%;
+  text-align: center;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.map {
+  margin-top: 115px;
+  margin-right: 50%;
+}
+
+.controlling {
+  margin-left: 14%;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin-left: 47%;
+  margin-right: 50%;
+  padding-top: 2px;
+  font-family: Georgia, serif;
+}
