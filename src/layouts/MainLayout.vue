@@ -11,8 +11,8 @@
       </q-toolbar>
 
       <q-tabs align="center">
-        <q-route-tab to="/states" label="Bundesländer" />
-        <q-route-tab to="/cities" label="Städte" />
+        <q-route-tab to="states" label="Bundesländer" @click="fillStates()" />
+        <q-route-tab to="cities" label="Städte" @click="fillCities()" />
       </q-tabs>
     </q-header>
 
@@ -194,24 +194,9 @@ export default {
       submitting: false,
       simulationstarted: false,
       interval: 1500,
-      incidence_thüringen: 0,
-      incidence_bayern: 0,
-      incidence_hessen: 0,
-      incidence_baden_württembe: 0,
-      incidence_sachsen: 0,
-      incidence_niedersachsen: 0,
-      incidence_rheinland_pfalz: 0,
-      incidence_schleswig_holst: 0,
-      incidence_saarland: 0,
-      incidence_berlin: 0,
-      incidence_brandenburg: 0,
-      incidence_bremen: 0,
-      incidence_nordrhein_westf: 0,
-      incidence_hamburg: 0,
-      incidence_mecklenburg_vor: 0,
-      incidence_sachsen_anhalt: 0,
       day: 0,
       componentKey: 0,
+      status: "states",
     };
   },
   setup() {
@@ -240,12 +225,10 @@ export default {
   methods: {
     startSimulation() {
       axios.get("/api/startsimulation", "");
-      this.startInterval();
       this.submitting = true;
       this.simulationstarted = true;
       this.alert = true;
       this.getAllStates(this.interval);
-      this.enableSlider();
     },
     getAllStates() {
       const parameter = new URLSearchParams();
@@ -257,134 +240,24 @@ export default {
           params: parameter,
         })
         .then((response) => (this.incidence_erfurt = response.data));
-
 */
 
       window.setInterval(() => {
-        axios
-          .get("/api/getincidencebystate?statename=thüringen", "")
-          .then((response) => (this.incidence_thüringen = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=bayern", "")
-          .then((response) => (this.incidence_bayern = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=hessen", "")
-          .then((response) => (this.incidence_hessen = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=baden-württemberg", "")
-          .then((response) => (this.incidence_baden_württembe = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=sachsen", "")
-          .then((response) => (this.incidence_sachsen = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=niedersachsen", "")
-          .then((response) => (this.incidence_niedersachsen = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=rheinland-pfalz", "")
-          .then((response) => (this.incidence_rheinland_pfalz = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=schleswig-holstein", "")
-          .then((response) => (this.incidence_schleswig_holst = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=saarland", "")
-          .then((response) => (this.incidence_saarland = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=berlin", "")
-          .then((response) => (this.incidence_berlin = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=brandenburg", "")
-          .then((response) => (this.incidence_brandenburg = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=bremen", "")
-          .then((response) => (this.incidence_bremen = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=nordrhein-westfahlen", "")
-          .then((response) => (this.incidence_nordrhein_westf = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=hamburg", "")
-          .then((response) => (this.incidence_hamburg = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=mecklenburg-vorpommern", "")
-          .then((response) => (this.incidence_mecklenburg_vor = response.data));
-        axios
-          .get("/api/getincidencebystate?statename=sachsen-anhalt", "")
-          .then((response) => (this.incidence_sachsen_anhalt = response.data));
+        if ((this.status = "states")) {
+          console.log(this.status);
+          axios
+            .get("/api/getincidenceofeverystate")
+            .then((response) => (this.rows = response.data));
+        } else {
+          console.log(this.status);
+          axios
+            .get("/api/getincidenceofeverycity")
+            .then((response) => (this.rows = response.data));
+        }
 
-        this.refreshList();
         this.refreshDay();
         this.forceRerender();
       }, 1500);
-    },
-    startInterval() {},
-    refreshList() {
-      console.log("refreshed List");
-
-      this.rows = [
-        {
-          name: "Bayern",
-          incidence: this.incidence_bayern,
-        },
-        {
-          name: "Thüringen",
-          incidence: this.incidence_thüringen,
-        },
-        {
-          name: "Hessen",
-          incidence: this.incidence_hessen,
-        },
-        {
-          name: "Baden-Württemberg",
-          incidence: this.incidence_baden_württembe,
-        },
-        {
-          name: "Sachsen",
-          incidence: this.incidence_sachsen,
-        },
-        {
-          name: "Niedersachsen",
-          incidence: this.incidence_niedersachsen,
-        },
-        {
-          name: "Rheinlandpfalz",
-          incidence: this.incidence_rheinland_pfalz,
-        },
-        {
-          name: "Schleswigholstein",
-          incidence: this.incidence_schleswig_holst,
-        },
-        {
-          name: "Saarland",
-          incidence: this.incidence_saarland,
-        },
-        {
-          name: "Berlin",
-          incidence: this.incidence_berlin,
-        },
-        {
-          name: "Brandenburg",
-          incidence: this.incidence_brandenburg,
-        },
-        {
-          name: "Nordrhein-Westfahlen",
-          incidence: this.incidence_nordrhein_westf,
-        },
-        {
-          name: "Hamburg",
-          incidence: this.incidence_hamburg,
-        },
-        {
-          name: "Mecklenburg-Vorpommern",
-          incidence: this.incidence_mecklenburg_vor,
-        },
-        {
-          name: "Bremen",
-          incidence: this.incidence_bremen,
-        },
-        {
-          name: "Sachsenanhalt",
-          incidence: this.incidence_sachsen_anhalt,
-        },
-      ];
     },
     refreshDay() {
       axios
@@ -399,7 +272,12 @@ export default {
       this.interval = newInterval;
       axios.get("/api/changespeed?speed=" + newInterval);
     },
-    enableSlider() {},
+    fillStates() {
+      this.status = "states";
+    },
+    fillCities() {
+      this.status = "cities";
+    },
   },
 };
 </script>
