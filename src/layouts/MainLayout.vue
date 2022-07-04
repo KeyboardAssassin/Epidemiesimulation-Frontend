@@ -63,6 +63,21 @@
         :disable="!simulationstarted"
       />
 
+      <q-page-sticky position="left" style="width: 15%">
+        <q-card>
+          <q-card-section>
+            <pre>
+              Germany
+                Incidence: {{ countyIncidence }}
+                R-Wert: {{ countryRValue }}
+                Neuinfektionenen: {{ countryNewInfections }}
+                Todesfälle: {{ countryDeadCases }}
+              </pre
+            >
+          </q-card-section>
+        </q-card>
+      </q-page-sticky>
+
       <div class="map">
         <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
       </div>
@@ -198,6 +213,10 @@ export default {
       day: 0,
       componentKey: 0,
       status: "states",
+      countyIncidence: 0,
+      countryRValue: 0,
+      countryNewInfections: 0,
+      countryDeadCases: 0,
     };
   },
   setup() {
@@ -278,6 +297,11 @@ export default {
     },
     fillCities() {
       this.status = "cities";
+    },
+    updateCountryInfoBos() {
+      axios
+        .get("/api/getCountrySummary")
+        .then((response) => (this.countryIncidence = response.data));
     },
   },
 };
