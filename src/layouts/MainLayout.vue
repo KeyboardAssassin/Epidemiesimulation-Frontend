@@ -183,7 +183,7 @@ let rows = [
     incidence: 0,
   },
   {
-    name: "Nordrhein-Westfahlen",
+    name: "Nordrhein-Westfalen",
     incidence: 0,
   },
   {
@@ -262,21 +262,34 @@ export default {
         .then((response) => (this.incidence_erfurt = response.data));
 */
 
-      window.setInterval(() => {
+      let intervalObj = window.setInterval(() => {
         if ((this.status = "states")) {
-          console.log(this.status);
           axios
             .get("/api/getincidenceofeverystate")
-            .then((response) => (this.rows = response.data));
+            .then((response) => (this.rows = response.data))
+            .catch(function (error) {
+              clearInterval(intervalObj);
+            });
         } else {
-          console.log(this.status);
           axios
             .get("/api/getincidenceofeverycity")
-            .then((response) => (this.rows = response.data));
+            .then(function (response) {
+              this.rows = response.data;
+            })
+            .catch(function (error) {
+              clearInterval(intervalObj);
+            });
+          // (response) => (this.rows = response.data)
         }
 
+        this.updateCountryInfoBox();
         this.refreshDay();
         this.forceRerender();
+
+        // TODO not working yet
+        // if (response.status == 504) {
+        //   clearInterval(intervalObj);
+        // }
       }, 1500);
     },
     refreshDay() {
@@ -298,10 +311,17 @@ export default {
     fillCities() {
       this.status = "cities";
     },
-    updateCountryInfoBos() {
+    updateCountryInfoBox() {
       axios
-        .get("/api/getCountrySummary")
-        .then((response) => (this.countryIncidence = response.data));
+        .get("/api/getcountrysummary")
+        .then(function (response) {
+          console.log("Start");
+          console.log(response.status);
+          console.log("Ende");
+        })
+        .catch(function (error) {
+          console.log("updateCOuntryInfoError");
+        });
     },
   },
 };
