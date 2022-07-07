@@ -68,7 +68,7 @@
           <q-card-section>
             <pre>
               Germany
-                Incidence: {{ countyIncidence }}
+                Incidence: {{ countryIncidence }}
                 R-Wert: {{ countryRValue }}
                 Neuinfektionenen: {{ countryNewInfections }}
                 Todesfälle: {{ countryDeadCases }}
@@ -122,7 +122,7 @@ const columns = [
   {
     name: "name",
     required: true,
-    label: "Bundesland",
+    label: "Bundesland/Stadt",
     align: "left",
     field: (row) => row.name,
     format: (val) => `${val}`,
@@ -199,7 +199,7 @@ let rows = [
     incidence: 0,
   },
   {
-    name: "Sachsenanzahlt",
+    name: "Sachsenanhalt",
     incidence: 0,
   },
 ];
@@ -251,46 +251,32 @@ export default {
       this.getAllStates(this.interval);
     },
     getAllStates() {
-      const parameter = new URLSearchParams();
-      parameter.append("cityname", "erfurt");
-
-      /*
-      axios
-        .get("/api/getincidence", {
-          params: parameter,
-        })
-        .then((response) => (this.incidence_erfurt = response.data));
-*/
-
       let intervalObj = window.setInterval(() => {
-        if ((this.status = "states")) {
+        console.log("Currentstate: ");
+        console.log(this.status);
+        if (this.status == "states") {
           axios
             .get("/api/getincidenceofeverystate")
             .then((response) => (this.rows = response.data))
             .catch(function (error) {
               clearInterval(intervalObj);
+              return;
             });
-        } else {
+        } else if (this.status == "cities") {
           axios
             .get("/api/getincidenceofeverycity")
-            .then(function (response) {
-              this.rows = response.data;
-            })
+            .then((response) => (this.rows = response.data))
             .catch(function (error) {
+              console.log(error);
               clearInterval(intervalObj);
+              return;
             });
-          // (response) => (this.rows = response.data)
         }
 
         this.updateCountryInfoBox();
         this.refreshDay();
         this.forceRerender();
-
-        // TODO not working yet
-        // if (response.status == 504) {
-        //   clearInterval(intervalObj);
-        // }
-      }, 1500);
+      }, this.interval);
     },
     refreshDay() {
       axios
@@ -307,20 +293,24 @@ export default {
     },
     fillStates() {
       this.status = "states";
+      console.log("Changed status to: " + this.status);
     },
     fillCities() {
       this.status = "cities";
+      console.log("Changed status to: " + this.status);
     },
     updateCountryInfoBox() {
       axios
         .get("/api/getcountrysummary")
-        .then(function (response) {
-          console.log("Start");
-          console.log(response.status);
-          console.log("Ende");
+        .then((res) => {
+          this.countryIncidence = res.data.incidence;
+          this.countryRValue = res.data.rValue;
+          this.countryNewInfections = res.data.newInfections;
+          this.countryDeadCases = res.data.newDeathCases;
         })
         .catch(function (error) {
-          console.log("updateCOuntryInfoError");
+          clearInterval(intervalObj);
+          return;
         });
     },
   },
