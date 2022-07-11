@@ -11,8 +11,18 @@
       </q-toolbar>
 
       <q-tabs align="center">
-        <q-route-tab to="states" label="Bundesländer" @click="fillStates()" />
-        <q-route-tab to="cities" label="Städte" @click="fillCities()" />
+        <q-route-tab
+          to="states"
+          label="Bundesländer"
+          @click="fillStates()"
+          :disable="!simulationstarted"
+        />
+        <q-route-tab
+          to="cities"
+          label="Städte"
+          @click="fillCities()"
+          :disable="!simulationstarted"
+        />
       </q-tabs>
     </q-header>
 
@@ -48,6 +58,72 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="alertContactRestrictions">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Wie lange sollen die Kontaktbeschränkungen anhalten?
+          <q-input filled v-model="text" label="Anzahl an Tagen" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="alertSocialDistancing">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Wie lange sollen die Abstandsregeln gelten?
+          <q-input filled v-model="text" label="Anzahl an Tagen" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="alertMedicationDevelopment">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Medikamentenentwicklung gestartet!
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="alertVaccinationDevelopment">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Impfstoffentwicklung gestartet!
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-page-container
       style="width: 60%; margin-right: 60%; margin-left: 40%; margin-top: 0"
     >
@@ -68,7 +144,7 @@
           <q-card-section>
             <pre>
               Germany
-                Incidence: {{ countryIncidence }}
+                Inzidenz: {{ countryIncidence }}
                 R-Wert: {{ countryRValue }}
                 Neuinfektionenen: {{ countryNewInfections }}
                 Todesfälle: {{ countryDeadCases }}
@@ -97,16 +173,38 @@
     <q-footer elevated class="bg-grey-8 text-white">
       <q-toolbar>
         <q-toolbar-title>
-          <div class="column-footer">Measures</div>
+          <div class="column-footer">Maßnahmen</div>
           <div class="column-footer">
-            <q-btn color="black" label="Vaccination" />
+            <q-btn
+              color="black"
+              label="Start der Impfstoffentwicklung"
+              @click="startVaccinationDevelopment()"
+              :disable="!simulationstarted"
+            />
           </div>
           <div class="column-footer">
-            <q-btn color="black" label="Medicine" />
+            <q-btn
+              color="black"
+              label="Start der Medikamentenentwicklung"
+              @click="startMedicationDevelopment()"
+              :disable="!simulationstarted"
+            />
           </div>
-          <div class="column-footer"><q-btn color="black" label="Masks" /></div>
           <div class="column-footer">
-            <q-btn color="black" label="Distancing" />
+            <q-btn
+              color="black"
+              label="Kontaktbeschränkung erlassen"
+              @click="startContactRestrictions()"
+              :disable="!simulationstarted"
+            />
+          </div>
+          <div class="column-footer">
+            <q-btn
+              color="black"
+              label="Abstandsregeln erlassen"
+              @click="startSocialDistancing()"
+              :disable="!simulationstarted"
+            />
           </div>
         </q-toolbar-title>
       </q-toolbar>
@@ -213,7 +311,7 @@ export default {
       day: 0,
       componentKey: 0,
       status: "states",
-      countyIncidence: 0,
+      countryIncidence: 0,
       countryRValue: 0,
       countryNewInfections: 0,
       countryDeadCases: 0,
@@ -229,6 +327,10 @@ export default {
         rowsPerPage: 30, // current rows per page being displayed
       },
       alert: ref(false),
+      alertContactRestrictions: ref(false),
+      alertSocialDistancing: ref(false),
+      alertMedicationDevelopment: ref(false),
+      alertVaccinationDevelopment: ref(false),
       rightDrawerOpen,
       toggleRightDrawer() {
         rightDrawerOpen.value = !rightDrawerOpen.value;
@@ -309,9 +411,26 @@ export default {
           this.countryDeadCases = res.data.newDeathCases;
         })
         .catch(function (error) {
+          console.log(error);
           clearInterval(intervalObj);
           return;
         });
+    },
+    startVaccinationDevelopment() {
+      this.alertVaccinationDevelopment = true;
+      axios.get("/api/startvaccinationdevelopment", "");
+    },
+    startMedicationDevelopment() {
+      this.alertMedicationDevelopment = true;
+      axios.get("/api/startmedicationdevelopment", "");
+    },
+    startContactRestrictions() {
+      this.alertContactRestrictions = true;
+      axios.get("/api/startcontactrestrictions", "");
+    },
+    startSocialDistancing() {
+      this.alertSocialDistancing = true;
+      axios.get("/api/startsocialdistancing", "");
     },
   },
 };
