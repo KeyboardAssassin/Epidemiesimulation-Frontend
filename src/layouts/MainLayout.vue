@@ -143,11 +143,15 @@
         <q-card>
           <q-card-section>
             <pre>
-              Germany
+              Deutschland
                 Inzidenz: {{ countryIncidence }}
                 R-Wert: {{ countryRValue }}
                 Neuinfektionenen: {{ countryNewInfections }}
                 Todesfälle: {{ countryDeadCases }}
+
+              Maßnahmen
+                Impfstoff: {{ vaccinationstatus }}
+                Medikamente: {{ medicationstatus }}
               </pre
             >
           </q-card-section>
@@ -176,6 +180,7 @@
           <div class="column-footer">Maßnahmen</div>
           <div class="column-footer">
             <q-btn
+              :loading="vaccinationdevelopmentstarted"
               color="black"
               label="Start der Impfstoffentwicklung"
               @click="startVaccinationDevelopment()"
@@ -184,6 +189,7 @@
           </div>
           <div class="column-footer">
             <q-btn
+              :loading="medicationdevelopmentstarted"
               color="black"
               label="Start der Medikamentenentwicklung"
               @click="startMedicationDevelopment()"
@@ -315,6 +321,10 @@ export default {
       countryRValue: 0,
       countryNewInfections: 0,
       countryDeadCases: 0,
+      vaccinationstatus: "nicht entwickelt",
+      vaccinationdevelopmentstarted: false,
+      medicationdevelopmentstarted: false,
+      medicationstatus: "nicht entwickelt",
     };
   },
   setup() {
@@ -361,6 +371,7 @@ export default {
             .get("/api/getincidenceofeverystate")
             .then((response) => (this.rows = response.data))
             .catch(function (error) {
+              console.log(error);
               clearInterval(intervalObj);
               return;
             });
@@ -418,11 +429,17 @@ export default {
     },
     startVaccinationDevelopment() {
       this.alertVaccinationDevelopment = true;
-      axios.get("/api/startvaccinationdevelopment", "");
+      axios.get("/api/startvaccinationdevelopment", "").then(function () {
+        this.vaccinationstatus = "in Entwicklung!";
+        this.vaccinationdevelopmentstarted = true;
+      });
     },
     startMedicationDevelopment() {
       this.alertMedicationDevelopment = true;
-      axios.get("/api/startmedicationdevelopment", "");
+      axios.get("/api/startmedicationdevelopment", "").then(function () {
+        this.medicationstatus = "in Entwicklung!";
+        this.medicationdevelopmentstarted = true;
+      });
     },
     startContactRestrictions() {
       this.alertContactRestrictions = true;
