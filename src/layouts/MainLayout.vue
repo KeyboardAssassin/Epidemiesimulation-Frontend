@@ -150,10 +150,13 @@
                 Todesfälle: {{ countryDeadCases }}
 
               Maßnahmen
-                Impfstoff: {{ vaccinationstatus }}
-                Medikamente: {{ medicationstatus }}
-              </pre
-            >
+                Impfstoff:   <span v-if="vaccinationstatuscode == 0" style="color:red">{{ vaccinationstatus }}</span>
+                             <span v-else-if="vaccinationstatuscode == 1" style="color:orange">{{ vaccinationstatus }}</span>
+                             <span v-else-if="vaccinationstatuscode == 2" style="color:green">{{ vaccinationstatus }}</span>
+                Medikamente: <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
+                             <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
+                             <span v-else-if="medicationstatuscode == 2" style="color:green">{{ medicationstatus }}</span>
+              </pre>
           </q-card-section>
         </q-card>
       </q-page-sticky>
@@ -180,7 +183,7 @@
           <div class="column-footer">Maßnahmen</div>
           <div class="column-footer">
             <q-btn
-              :loading="vaccinationdevelopmentstarted"
+              :loading="vaccinationbuttonloading"
               color="black"
               label="Start der Impfstoffentwicklung"
               @click="startVaccinationDevelopment()"
@@ -189,7 +192,8 @@
           </div>
           <div class="column-footer">
             <q-btn
-              :loading="medicationdevelopmentstarted"
+              id="medicationButton"
+              :loading="medicationbuttonloading"
               color="black"
               label="Start der Medikamentenentwicklung"
               @click="startMedicationDevelopment()"
@@ -321,10 +325,16 @@ export default {
       countryRValue: 0,
       countryNewInfections: 0,
       countryDeadCases: 0,
-      vaccinationstatus: "nicht entwickelt",
-      vaccinationdevelopmentstarted: false,
-      medicationdevelopmentstarted: false,
-      medicationstatus: "nicht entwickelt",
+      vaccinationstatus: "Nicht entwickelt",
+      medicationstatus: "Nicht entwickelt",
+      vaccinationstatuscode: 0,
+      medicationstatuscode: 0,
+      vaccinationbuttonloading: false,
+      medicationbuttonloading: false,
+      vaccinationdeveloped: false,
+      medicationdeveloped: false,
+      vaccinationButtonText: "Start der Impfstoffentwicklung",
+      medicationButtonText: "Start der Medikamentenentwicklung",
     };
   },
   setup() {
@@ -388,6 +398,7 @@ export default {
 
         this.updateCountryInfoBox();
         this.refreshDay();
+        this.checkIfMeasureIsDeveloped();
         this.forceRerender();
       }, this.interval);
     },
@@ -420,6 +431,8 @@ export default {
           this.countryRValue = res.data.rValue;
           this.countryNewInfections = res.data.newInfections;
           this.countryDeadCases = res.data.newDeathCases;
+          this.vaccinationdeveloped = res.data.vaccinationDeveloped;
+          this.medicationdeveloped = res.data.medicationDeveloped;
         })
         .catch(function (error) {
           console.log(error);
@@ -429,16 +442,18 @@ export default {
     },
     startVaccinationDevelopment() {
       this.alertVaccinationDevelopment = true;
-      axios.get("/api/startvaccinationdevelopment", "").then(function () {
-        this.vaccinationstatus = "in Entwicklung!";
-        this.vaccinationdevelopmentstarted = true;
+      axios.get("/api/startvaccinationdevelopment", "").then((res) => {
+        this.vaccinationstatus = "In Entwicklung!";
+        this.vaccinationstatuscode = 1;
+        this.vaccinationbuttonloading = true;
       });
     },
     startMedicationDevelopment() {
       this.alertMedicationDevelopment = true;
-      axios.get("/api/startmedicationdevelopment", "").then(function () {
-        this.medicationstatus = "in Entwicklung!";
-        this.medicationdevelopmentstarted = true;
+      axios.get("/api/startmedicationdevelopment", "").then((res) => {
+        this.medicationstatus = "In Entwicklung!";
+        this.medicationstatuscode = 1;
+        this.medicationbuttonloading = true;
       });
     },
     startContactRestrictions() {
@@ -448,6 +463,22 @@ export default {
     startSocialDistancing() {
       this.alertSocialDistancing = true;
       axios.get("/api/startsocialdistancing", "");
+    },
+    checkIfMeasureIsDeveloped() {
+      if (this.vaccinationdeveloped && this.vaccinationbuttonloading) {
+        this.vaccinationstatus = "Entwickelt!";
+        this.vaccinationButtonText = "Start der Impfkamagne";
+        this.vaccinationstatuscode = 2;
+        this.vaccinationbuttonloading = false;
+      }
+      if (this.medicationdeveloped && this.medicationbuttonloading) {
+        this.medicationstatus = "Entwickelt!";
+        this.medicationButtonText = "Start der Zulassung";
+        this.medicationstatuscode = 2;
+        this.medicationbuttonloading = false;
+
+        document.getElementById("medicationButton").label("akjsflkjsf");
+      }
     },
   },
 };
