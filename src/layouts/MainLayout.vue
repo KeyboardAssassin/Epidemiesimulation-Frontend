@@ -165,6 +165,13 @@
         <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
       </div>
 
+      <q-btn
+        round
+        color="negative"
+        icon="pan_tool"
+        @click="pauseSimulation()"
+      />
+
       <br /><br />
       <div class="controlling">
         <q-btn
@@ -524,11 +531,8 @@ export default {
         this.vaccinationstatuscode == 1
       ) {
         this.vaccinationstatus = "Entwickelt!";
-        // document.getElementById("vaccinationButton").innerHTML =
-        //  "Start der Impfkampagne";
         this.vaccinationstatuscode = 2;
         this.vaccinationbuttonloading = false;
-        console.log("vaccination code now on 2");
       }
       if (
         this.medicationdeveloped &&
@@ -538,8 +542,11 @@ export default {
         this.medicationstatus = "Entwickelt!";
         this.medicationstatuscode = 2;
         this.medicationbuttonloading = false;
-        console.log("Medication code now on 2");
       }
+    },
+    pauseSimulation() {
+      console.log("pause hit");
+      axios.get("/api/pausesimulation?pause=true", "");
     },
   },
 };
