@@ -152,10 +152,10 @@
               Maßnahmen
                 Impfstoff:   <span v-if="vaccinationstatuscode == 0" style="color:red">{{ vaccinationstatus }}</span>
                              <span v-else-if="vaccinationstatuscode == 1" style="color:orange">{{ vaccinationstatus }}</span>
-                             <span v-else-if="vaccinationstatuscode == 2" style="color:green">{{ vaccinationstatus }}</span>
+                             <span v-else-if="vaccinationstatuscode == 2 || vaccinationstatuscode == 3" style="color:green">{{ vaccinationstatus }}</span>
                 Medikamente: <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
                              <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
-                             <span v-else-if="medicationstatuscode == 2" style="color:green">{{ medicationstatus }}</span>
+                             <span v-else-if="medicationstatuscode == 2 || medicationstatuscode == 3" style="color:green">{{ medicationstatus }}</span>
               </pre>
           </q-card-section>
         </q-card>
@@ -183,20 +183,46 @@
           <div class="column-footer">Maßnahmen</div>
           <div class="column-footer">
             <q-btn
+              v-if="
+                this.vaccinationstatuscode == 0 ||
+                this.vaccinationstatuscode == 1
+              "
+              id="vaccinationButton"
               :loading="vaccinationbuttonloading"
               color="black"
               label="Start der Impfstoffentwicklung"
-              @click="startVaccinationDevelopment()"
+              @click="activateVaccinationButton()"
+              :disable="!simulationstarted"
+            />
+            <q-btn
+              v-if="this.vaccinationstatuscode == 2"
+              id="vaccinationButton"
+              :loading="vaccinationbuttonloading"
+              color="green"
+              label="Start der Impfkamagne"
+              @click="activateVaccinationButton()"
               :disable="!simulationstarted"
             />
           </div>
           <div class="column-footer">
             <q-btn
-              id="medicationButton"
+              v-if="
+                this.medicationstatuscode == 0 || this.medicationstatuscode == 1
+              "
+              :id="medicationButton"
               :loading="medicationbuttonloading"
               color="black"
               label="Start der Medikamentenentwicklung"
-              @click="startMedicationDevelopment()"
+              @click="activateMedicationButton()"
+              :disable="!simulationstarted"
+            />
+            <q-btn
+              v-if="this.medicationstatuscode == 2"
+              :id="medicationButton"
+              :loading="medicationbuttonloading"
+              color="green"
+              label="Start der Medikamentenkampagne"
+              @click="activateMedicationButton()"
               :disable="!simulationstarted"
             />
           </div>
@@ -333,8 +359,8 @@ export default {
       medicationbuttonloading: false,
       vaccinationdeveloped: false,
       medicationdeveloped: false,
-      vaccinationButtonText: "Start der Impfstoffentwicklung",
-      medicationButtonText: "Start der Medikamentenentwicklung",
+      vaccinationusage: false,
+      medicationusage: false,
     };
   },
   setup() {
@@ -374,8 +400,6 @@ export default {
     },
     getAllStates() {
       let intervalObj = window.setInterval(() => {
-        console.log("Currentstate: ");
-        console.log(this.status);
         if (this.status == "states") {
           axios
             .get("/api/getincidenceofeverystate")
@@ -440,19 +464,48 @@ export default {
           return;
         });
     },
-    startVaccinationDevelopment() {
-      this.alertVaccinationDevelopment = true;
-      axios.get("/api/startvaccinationdevelopment", "").then((res) => {
-        this.vaccinationstatus = "In Entwicklung!";
-        this.vaccinationstatuscode = 1;
+    activateVaccinationButton() {
+      if (this.vaccinationstatuscode == 0) {
+        this.alertVaccinationDevelopment = true;
+        axios.get("/api/startvaccinationdevelopment", "").then((res) => {
+          this.vaccinationstatus = "In Entwicklung!";
+          this.vaccinationstatuscode = 1;
+          this.vaccinationbuttonloading = true;
+        });
+      }
+
+      if (this.vaccinationstatuscode == 2) {
+        this.startVaccinationUsage();
+        this.vaccinationstatuscode = 3;
+      }
+    },
+    activateMedicationButton() {
+      if (this.medicationstatuscode == 0) {
+        this.alertMedicationDevelopment = true;
+        axios.get("/api/startmedicationdevelopment", "").then((res) => {
+          this.medicationstatus = "In Entwicklung!";
+          this.medicationstatuscode = 1;
+          this.medicationbuttonloading = true;
+        });
+      }
+
+      if (this.medicationstatuscode == 2) {
+        this.startMedicationUsage();
+        this.medicationstatuscode = 3;
+        this.medicationstatus = "Medizin wird eingesetzt!";
+      }
+    },
+    startVaccinationUsage() {
+      this.vaccinationusage = true;
+      axios.get("/api/startvaccination", "").then((res) => {
+        this.vaccinationstatus = "Impfkampagne läuft!";
         this.vaccinationbuttonloading = true;
       });
     },
-    startMedicationDevelopment() {
-      this.alertMedicationDevelopment = true;
-      axios.get("/api/startmedicationdevelopment", "").then((res) => {
-        this.medicationstatus = "In Entwicklung!";
-        this.medicationstatuscode = 1;
+    startMedicationUsage() {
+      this.medicationusage = true;
+      axios.get("/api/startmedication", "").then((res) => {
+        this.medicationstatus = "Medizin wird eingesetzt!";
         this.medicationbuttonloading = true;
       });
     },
@@ -465,19 +518,27 @@ export default {
       axios.get("/api/startsocialdistancing", "");
     },
     checkIfMeasureIsDeveloped() {
-      if (this.vaccinationdeveloped && this.vaccinationbuttonloading) {
+      if (
+        this.vaccinationdeveloped &&
+        !this.vaccinationusage &&
+        this.vaccinationstatuscode == 1
+      ) {
         this.vaccinationstatus = "Entwickelt!";
-        this.vaccinationButtonText = "Start der Impfkamagne";
+        // document.getElementById("vaccinationButton").innerHTML =
+        //  "Start der Impfkampagne";
         this.vaccinationstatuscode = 2;
         this.vaccinationbuttonloading = false;
+        console.log("vaccination code now on 2");
       }
-      if (this.medicationdeveloped && this.medicationbuttonloading) {
+      if (
+        this.medicationdeveloped &&
+        !this.medicationusage &&
+        this.medicationstatuscode == 1
+      ) {
         this.medicationstatus = "Entwickelt!";
-        this.medicationButtonText = "Start der Zulassung";
         this.medicationstatuscode = 2;
         this.medicationbuttonloading = false;
-
-        document.getElementById("medicationButton").label("akjsflkjsf");
+        console.log("Medication code now on 2");
       }
     },
   },
