@@ -42,6 +42,26 @@
       ></q-table>
     </q-drawer>
 
+    <q-page-sticky position="left" style="width: 5%; height: 10%">
+      <q-btn
+        round
+        color="negative"
+        icon="pan_tool"
+        @click="pauseSimulation(true)"
+        :disable="!simulationstarted"
+      />
+    </q-page-sticky>
+
+    <q-page-sticky position="left" style="width: 10%; height: 10%">
+      <q-btn
+        round
+        color="positive"
+        icon="done"
+        @click="pauseSimulation(false)"
+        :disable="!simulationstarted"
+      />
+    </q-page-sticky>
+
     <q-dialog v-model="alert">
       <q-card>
         <q-card-section>
@@ -66,11 +86,23 @@
 
         <q-card-section class="q-pt-none">
           Wie lange sollen die Kontaktbeschränkungen anhalten?
-          <q-input filled v-model="text" label="Anzahl an Tagen" />
+          <q-input
+            filled
+            v-model="restrictionsInput"
+            label="Anzahl an Tagen"
+            type="number"
+            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+          />
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="OK" color="primary" v-close-popup />
+          <q-btn
+            flat
+            label="OK"
+            color="primary"
+            v-close-popup
+            @click="startContactRestrictions()"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -83,11 +115,22 @@
 
         <q-card-section class="q-pt-none">
           Wie lange sollen die Abstandsregeln gelten?
-          <q-input filled v-model="text" label="Anzahl an Tagen" />
+          <q-input
+            filled
+            v-model="distancingInput"
+            label="Anzahl an Tagen"
+            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+          />
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="OK" color="primary" v-close-popup />
+          <q-btn
+            flat
+            label="OK"
+            color="primary"
+            v-close-popup
+            @click="startSocialDistancing()"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -165,13 +208,6 @@
         <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
       </div>
 
-      <q-btn
-        round
-        color="negative"
-        icon="pan_tool"
-        @click="pauseSimulation()"
-      />
-
       <br /><br />
       <div class="controlling">
         <q-btn
@@ -237,7 +273,7 @@
             <q-btn
               color="black"
               label="Kontaktbeschränkung erlassen"
-              @click="startContactRestrictions()"
+              @click="startContactRestrictionsAlert()"
               :disable="!simulationstarted"
             />
           </div>
@@ -245,7 +281,7 @@
             <q-btn
               color="black"
               label="Abstandsregeln erlassen"
-              @click="startSocialDistancing()"
+              @click="startSocialDistancingAlert()"
               :disable="!simulationstarted"
             />
           </div>
@@ -368,6 +404,7 @@ export default {
       medicationdeveloped: false,
       vaccinationusage: false,
       medicationusage: false,
+      amountOfDaysContactRestrictions: 0,
     };
   },
   setup() {
@@ -516,13 +553,21 @@ export default {
         this.medicationbuttonloading = true;
       });
     },
-    startContactRestrictions() {
+    startContactRestrictionsAlert() {
       this.alertContactRestrictions = true;
-      axios.get("/api/startcontactrestrictions", "");
+    },
+    startContactRestrictions() {
+      axios.get("/api/startcontactrestrictions", {
+        params: { duration: this.restrictionsInput },
+      });
+    },
+    startSocialDistancingAlert() {
+      this.alertSocialDistancing = true;
     },
     startSocialDistancing() {
-      this.alertSocialDistancing = true;
-      axios.get("/api/startsocialdistancing", "");
+      axios.get("/api/startsocialdistancing", {
+        params: { duration: this.distancingInput },
+      });
     },
     checkIfMeasureIsDeveloped() {
       if (
@@ -544,9 +589,12 @@ export default {
         this.medicationbuttonloading = false;
       }
     },
-    pauseSimulation() {
-      console.log("pause hit");
-      axios.get("/api/pausesimulation?pause=true", "");
+    pauseSimulation(pause) {
+      if (pause) {
+        axios.get("/api/pausesimulation?pause=true", "");
+      } else if (!pause) {
+        axios.get("/api/pausesimulation?pause=false", "");
+      }
     },
   },
 };
