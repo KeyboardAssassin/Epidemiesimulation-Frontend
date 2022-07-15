@@ -557,16 +557,16 @@ export default {
       this.alertContactRestrictions = true;
     },
     startContactRestrictions() {
-      axios.get("/api/startcontactrestrictions", {
-        params: { duration: this.restrictionsInput },
+      axios.get("/api/activatecontactrestrictions", {
+        params: { amountofdays: this.restrictionsInput },
       });
     },
     startSocialDistancingAlert() {
       this.alertSocialDistancing = true;
     },
     startSocialDistancing() {
-      axios.get("/api/startsocialdistancing", {
-        params: { duration: this.distancingInput },
+      axios.get("/api/activatesocialdistancing", {
+        params: { amountofdays: this.distancingInput },
       });
     },
     checkIfMeasureIsDeveloped() {
