@@ -1,9 +1,9 @@
 {
-  "name": "quasar-project",
+  "name": "Epidemie Simulation",
   "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "Quasar App",
-  "author": "KeyboardAssassin <daniel.cerhak@fh-erfurt.de>",
+  "description": "Epidemie Simulation",
+  "productName": "Epidemie Simulation",
+  "author": "Daniel Cerhak <daniel.cerhak@fh-erfurt.de>",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",

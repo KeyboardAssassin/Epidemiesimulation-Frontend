@@ -78,7 +78,8 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="alertContactRestrictions">
+    <!-- alert for contact restrictions (country) -->
+    <q-dialog v-model="alertContactRestrictionsCountry">
       <q-card>
         <q-card-section>
           <div class="text-h6">Information</div>
@@ -86,6 +87,89 @@
 
         <q-card-section class="q-pt-none">
           Wie lange sollen die Kontaktbeschränkungen anhalten?
+          <q-input
+            filled
+            v-model="restrictionsInput"
+            label="Anzahl an Tagen"
+            type="number"
+            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="OK"
+            color="primary"
+            v-close-popup
+            @click="startContactRestrictions()"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- alert for contact restrictions (state) -->
+    <q-dialog v-model="alertContactRestrictionsState">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-card-section>
+            Bitte den Namen des Bundeslandes eingeben:
+          </q-card-section>
+          <q-card-section>
+            <q-input
+              filled
+              v-model="restrictionsInputState"
+              label="Name des Bundeslandes"
+              type="text"
+            />
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            Wie lange sollen die Kontaktbeschränkungen anhalten?
+          </q-card-section>
+          <q-input
+            filled
+            v-model="restrictionsInput"
+            label="Anzahl an Tagen"
+            type="number"
+            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="OK"
+            color="primary"
+            v-close-popup
+            @click="startContactRestrictions()"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- alert for contact restrictions (city) -->
+    <q-dialog v-model="alertContactRestrictionsCity">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-card-section> Bitte den Namen der Stadt eingeben: </q-card-section>
+          <q-input
+            filled
+            v-model="restrictionsInputState"
+            label="Name der Stadt"
+            type="text"
+          />
+          <q-card-section class="q-pt-none">
+            Wie lange sollen die Kontaktbeschränkungen anhalten?
+          </q-card-section>
           <q-input
             filled
             v-model="restrictionsInput"
@@ -232,7 +316,7 @@
               "
               id="vaccinationButton"
               :loading="vaccinationbuttonloading"
-              color="black"
+              color="primary"
               label="Start der Impfstoffentwicklung"
               @click="activateVaccinationButton()"
               :disable="!simulationstarted"
@@ -254,7 +338,7 @@
               "
               :id="medicationButton"
               :loading="medicationbuttonloading"
-              color="black"
+              color="primary"
               label="Start der Medikamentenentwicklung"
               @click="activateMedicationButton()"
               :disable="!simulationstarted"
@@ -270,16 +354,47 @@
             />
           </div>
           <div class="column-footer">
-            <q-btn
-              color="black"
-              label="Kontaktbeschränkung erlassen"
-              @click="startContactRestrictionsAlert()"
+            <q-btn-dropdown
+              color="primary"
+              label="Kontaktbeschränkungen"
               :disable="!simulationstarted"
-            />
+            >
+              <q-list>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="this.alertContactRestrictionsCountry = true"
+                >
+                  <q-item-section>
+                    <q-item-label>Gesamtes Land</q-item-label>
+                  </q-item-section>
+                </q-item>
+
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="this.alertContactRestrictionsState = true"
+                >
+                  <q-item-section>
+                    <q-item-label>Für ein Bundesland</q-item-label>
+                  </q-item-section>
+                </q-item>
+
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="this.alertContactRestrictionsCity = true"
+                >
+                  <q-item-section>
+                    <q-item-label>Einzelne Stadt</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
           </div>
           <div class="column-footer">
             <q-btn
-              color="black"
+              color="primary"
               label="Abstandsregeln erlassen"
               @click="startSocialDistancingAlert()"
               :disable="!simulationstarted"
@@ -417,7 +532,9 @@ export default {
         rowsPerPage: 30, // current rows per page being displayed
       },
       alert: ref(false),
-      alertContactRestrictions: ref(false),
+      alertContactRestrictionsCountry: ref(false),
+      alertContactRestrictionsState: ref(false),
+      alertContactRestrictionsCity: ref(false),
       alertSocialDistancing: ref(false),
       alertMedicationDevelopment: ref(false),
       alertVaccinationDevelopment: ref(false),
@@ -552,9 +669,6 @@ export default {
         this.medicationstatus = "Medizin wird eingesetzt!";
         this.medicationbuttonloading = true;
       });
-    },
-    startContactRestrictionsAlert() {
-      this.alertContactRestrictions = true;
     },
     startContactRestrictions() {
       axios.get("/api/activatecontactrestrictions", {
