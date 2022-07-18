@@ -102,7 +102,7 @@
             label="OK"
             color="primary"
             v-close-popup
-            @click="startContactRestrictions()"
+            @click="startContactRestrictions('country')"
           />
         </q-card-actions>
       </q-card>
@@ -146,7 +146,7 @@
             label="OK"
             color="primary"
             v-close-popup
-            @click="startContactRestrictions()"
+            @click="startContactRestrictions('state')"
           />
         </q-card-actions>
       </q-card>
@@ -163,7 +163,7 @@
           <q-card-section> Bitte den Namen der Stadt eingeben: </q-card-section>
           <q-input
             filled
-            v-model="restrictionsInputState"
+            v-model="restrictionsInputCity"
             label="Name der Stadt"
             type="text"
           />
@@ -185,7 +185,7 @@
             label="OK"
             color="primary"
             v-close-popup
-            @click="startContactRestrictions()"
+            @click="startContactRestrictions('city')"
           />
         </q-card-actions>
       </q-card>
@@ -198,13 +198,9 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          Wie lange sollen die Abstandsregeln gelten?
-          <q-input
-            filled
-            v-model="distancingInput"
-            label="Anzahl an Tagen"
-            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
-          />
+          Abstandregeln dauerhaft beschlossen!
+          <q-input />
+          <!-- Muss entfernt werden aber IntelliSense meckert anders heftig-->
         </q-card-section>
 
         <q-card-actions align="right">
@@ -354,11 +350,7 @@
             />
           </div>
           <div class="column-footer">
-            <q-btn-dropdown
-              color="primary"
-              label="Kontaktbeschränkungen"
-              :disable="!simulationstarted"
-            >
+            <q-btn-dropdown color="primary" label="Kontaktbeschränkungen">
               <q-list>
                 <q-item
                   clickable
@@ -670,18 +662,38 @@ export default {
         this.medicationbuttonloading = true;
       });
     },
-    startContactRestrictions() {
-      axios.get("/api/activatecontactrestrictions", {
-        params: { amountofdays: this.restrictionsInput },
-      });
+    startContactRestrictions(type) {
+      if (type == "country") {
+        axios.get("/api/activatecontactrestrictions", {
+          params: {
+            type: type,
+            name: "deutschland",
+            amountofdays: this.restrictionsInput,
+          },
+        });
+      } else if (type == "state") {
+        axios.get("/api/activatecontactrestrictions", {
+          params: {
+            type: type,
+            name: this.restrictionsInputState,
+            amountofdays: this.restrictionsInput,
+          },
+        });
+      } else if (type == "city") {
+        axios.get("/api/activatecontactrestrictions", {
+          params: {
+            type: type,
+            name: this.restrictionsInputCity,
+            amountofdays: this.restrictionsInput,
+          },
+        });
+      }
     },
     startSocialDistancingAlert() {
       this.alertSocialDistancing = true;
     },
     startSocialDistancing() {
-      axios.get("/api/activatesocialdistancing", {
-        params: { amountofdays: this.distancingInput },
-      });
+      axios.get("/api/activatesocialdistancing", "");
     },
     checkIfMeasureIsDeveloped() {
       if (
