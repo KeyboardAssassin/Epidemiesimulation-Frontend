@@ -266,6 +266,7 @@
         <q-card>
           <q-card-section>
             <pre>
+              <text-body1>
               Deutschland
                 Inzidenz: {{ countryIncidence }}
                 R-Wert: {{ countryRValue }}
@@ -279,19 +280,28 @@
                 Medikamente: <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
                              <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
                              <span v-else-if="medicationstatuscode == 2 || medicationstatuscode == 3" style="color:green">{{ medicationstatus }}</span>
+                </text-body1>
               </pre>
           </q-card-section>
         </q-card>
       </q-page-sticky>
 
       <div class="map">
-        <img alt="Map of Germany" src="../assets/rsz_1germany.png" />
+        <img
+          v-if="status == 'states'"
+          alt="Map of Germany"
+          src="../assets/states.png"
+        />
+        <img
+          v-if="status == 'cities'"
+          alt="Map of Germany"
+          src="../assets/cities.png"
+        />
       </div>
 
-      <br /><br />
-      <div class="controlling">
+      <br />
+      <div v-if="!simulationstarted" class="controlling">
         <q-btn
-          :loading="submitting"
           id="simulation-button"
           label="Start Simulation"
           color="positive"
@@ -350,7 +360,11 @@
             />
           </div>
           <div class="column-footer">
-            <q-btn-dropdown color="primary" label="Kontaktbeschränkungen">
+            <q-btn-dropdown
+              color="primary"
+              label="Kontaktbeschränkungen"
+              :disable="!simulationstarted"
+            >
               <q-list>
                 <q-item
                   clickable
