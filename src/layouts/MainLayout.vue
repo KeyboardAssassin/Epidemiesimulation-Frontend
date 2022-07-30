@@ -43,6 +43,9 @@
     </q-drawer>
 
     <q-page-sticky position="left" style="width: 5%; height: 10%">
+      <div>
+        <q-badge color="primary">Pause</q-badge>
+      </div>
       <q-btn
         round
         color="negative"
@@ -53,6 +56,9 @@
     </q-page-sticky>
 
     <q-page-sticky position="left" style="width: 10%; height: 10%">
+      <div>
+        <q-badge color="primary">Weiter</q-badge>
+      </div>
       <q-btn
         round
         color="positive"
@@ -62,7 +68,7 @@
       />
     </q-page-sticky>
 
-    <q-dialog v-model="alert">
+    <q-dialog v-model="positiveAlert">
       <q-card>
         <q-card-section>
           <div class="text-h6">Information</div>
@@ -70,6 +76,23 @@
 
         <q-card-section class="q-pt-none">
           Simulation erfolgreich gestartet!
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="negativeAlert">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Fehler</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <center>Simulation wurde nicht gestartet!</center>
+          Vermutlich läuft die Serveranwendung im Hintergrund nicht.
         </q-card-section>
 
         <q-card-actions align="right">
@@ -199,8 +222,6 @@
 
         <q-card-section class="q-pt-none">
           Abstandregeln dauerhaft beschlossen!
-          <q-input />
-          <!-- Muss entfernt werden aber IntelliSense meckert anders heftig-->
         </q-card-section>
 
         <q-card-actions align="right">
@@ -248,8 +269,11 @@
     </q-dialog>
 
     <q-page-container
-      style="width: 60%; margin-right: 60%; margin-left: 40%; margin-top: 0"
+      style="width: 60%; margin-right: 60%; margin-left: 40%; margin-top: 0.5%"
     >
+      <q-badge color="primary" style="margin-right: 60%">
+        Geschwindkigkeit der Tage:
+      </q-badge>
       <q-slider
         @change="changeSpeed(model)"
         class="q-mt-xl"
@@ -260,26 +284,29 @@
         :min="0"
         :max="10"
         :disable="!simulationstarted"
+        style="margin-top: 1%"
       />
 
-      <q-page-sticky position="left" style="width: 15%">
-        <q-card>
+      <q-page-sticky position="left" style="width: 19%; height: 95%">
+        <q-card style="background-color: #dcdcdc; height: 0%">
           <q-card-section>
             <pre>
               <text-body1>
-              Deutschland
-                Inzidenz: {{ countryIncidence }}
-                R-Wert: {{ countryRValue }}
-                Neuinfektionenen: {{ countryNewInfections }}
-                Todesfälle: {{ countryDeadCases }}
+    Deutschland
+      Inzidenz: {{ countryIncidence }}
+      R-Wert: {{ countryRValue }}
+      Neuinfektionenen: {{ countryNewInfections }}
+      Todesfälle: {{ countryDeadCases }}
 
-              Maßnahmen
-                Impfstoff:   <span v-if="vaccinationstatuscode == 0" style="color:red">{{ vaccinationstatus }}</span>
-                             <span v-else-if="vaccinationstatuscode == 1" style="color:orange">{{ vaccinationstatus }}</span>
-                             <span v-else-if="vaccinationstatuscode == 2 || vaccinationstatuscode == 3" style="color:green">{{ vaccinationstatus }}</span>
-                Medikamente: <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
-                             <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
-                             <span v-else-if="medicationstatuscode == 2 || medicationstatuscode == 3" style="color:green">{{ medicationstatus }}</span>
+    Maßnahmen
+      Impfstoff:    <span v-if="vaccinationstatuscode == 0" style="color:red">{{ vaccinationstatus }}</span>
+                    <span v-else-if="vaccinationstatuscode == 1" style="color:orange">{{ vaccinationstatus }}</span>
+                    <span v-else-if="vaccinationstatuscode == 2 || vaccinationstatuscode == 3" style="color:green">{{ vaccinationstatus }}</span>
+      Medikamente:  <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
+                    <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
+                    <span v-else-if="medicationstatuscode == 2 || medicationstatuscode == 3" style="color:green">{{ medicationstatus }}</span>
+
+                    <deathChart ref="deathChartRef"></deathChart>
                 </text-body1>
               </pre>
           </q-card-section>
@@ -414,7 +441,12 @@
 
 <script>
 import { ref, computed } from "vue";
+import { defineAsyncComponent } from "vue";
 import axios from "axios";
+
+let deathChart = defineAsyncComponent(() =>
+  import("components/charts/deathChart.vue")
+);
 
 const columns = [
   {
@@ -526,6 +558,7 @@ export default {
       vaccinationusage: false,
       medicationusage: false,
       amountOfDaysContactRestrictions: 0,
+      backendUuid: "",
     };
   },
   setup() {
@@ -537,7 +570,9 @@ export default {
       pagination: {
         rowsPerPage: 30, // current rows per page being displayed
       },
-      alert: ref(false),
+      negativeAlert: ref(false),
+      positiveAlert: ref(false),
+      simulationPaused: ref(false),
       alertContactRestrictionsCountry: ref(false),
       alertContactRestrictionsState: ref(false),
       alertContactRestrictionsCity: ref(false),
@@ -559,43 +594,68 @@ export default {
   },
   methods: {
     startSimulation() {
-      axios.get("/api/startsimulation", "");
-      this.submitting = true;
-      this.simulationstarted = true;
-      this.alert = true;
+      axios
+        .post("/api/startsimulation")
+        .then((res) => {
+          if ((res.status = 200)) {
+            this.simulationstarted = true;
+            this.positiveAlert = true;
+            this.submitting = true;
+            this.backendUuid = res.data;
+          }
+        })
+        .catch((err) => {
+          this.negativeAlert = true;
+          return;
+        });
+
       this.getAllStates(this.interval);
     },
     getAllStates() {
       let intervalObj = window.setInterval(() => {
-        if (this.status == "states") {
-          axios
-            .get("/api/getincidenceofeverystate")
-            .then((response) => (this.rows = response.data))
-            .catch(function (error) {
-              console.log(error);
-              clearInterval(intervalObj);
-              return;
-            });
-        } else if (this.status == "cities") {
-          axios
-            .get("/api/getincidenceofeverycity")
-            .then((response) => (this.rows = response.data))
-            .catch(function (error) {
-              console.log(error);
-              clearInterval(intervalObj);
-              return;
-            });
-        }
+        if (!this.simulationPaused) {
+          if (this.status == "states") {
+            axios
+              .get("/api/getincidenceofeverystate", {
+                params: {
+                  uuid: this.backendUuid,
+                },
+              })
+              .then((response) => (this.rows = response.data))
+              .catch(function (error) {
+                console.log(error);
+                clearInterval(intervalObj);
+                return;
+              });
+          } else if (this.status == "cities") {
+            axios
+              .get("/api/getincidenceofeverycity", {
+                params: {
+                  uuid: this.backendUuid,
+                },
+              })
+              .then((response) => (this.rows = response.data))
+              .catch(function (error) {
+                console.log(error);
+                clearInterval(intervalObj);
+                return;
+              });
+          }
 
-        this.updateCountryInfoBox();
-        this.refreshDay();
-        this.checkIfMeasureIsDeveloped();
-        this.forceRerender();
+          this.updateCountryInfoBox();
+          this.refreshDay();
+          this.checkIfMeasureIsDeveloped();
+          this.forceRerender();
+        }
       }, this.interval);
     },
     refreshDay() {
       axios
-        .get("/api/getcurrentday")
+        .get("/api/getcurrentday", {
+          params: {
+            uuid: this.backendUuid,
+          },
+        })
         .then((response) => (this.day = response.data));
     },
     forceRerender() {
@@ -604,19 +664,26 @@ export default {
     changeSpeed(speed) {
       let newInterval = (11 - speed) * 400;
       this.interval = newInterval;
-      axios.get("/api/changespeed?speed=" + newInterval);
+      axios.get("/api/changespeed", {
+        params: {
+          speed: newInterval,
+          uuid: this.backendUuid,
+        },
+      });
     },
     fillStates() {
       this.status = "states";
-      console.log("Changed status to: " + this.status);
     },
     fillCities() {
       this.status = "cities";
-      console.log("Changed status to: " + this.status);
     },
     updateCountryInfoBox() {
       axios
-        .get("/api/getcountrysummary")
+        .get("/api/getcountrysummary", {
+          params: {
+            uuid: this.backendUuid,
+          },
+        })
         .then((res) => {
           this.countryIncidence = res.data.incidence;
           this.countryRValue = res.data.rValue;
@@ -624,6 +691,11 @@ export default {
           this.countryDeadCases = res.data.newDeathCases;
           this.vaccinationdeveloped = res.data.vaccinationDeveloped;
           this.medicationdeveloped = res.data.medicationDeveloped;
+
+          this.$refs.deathChartRef.appendDeathList(
+            this.countryDeadCases,
+            this.countryNewInfections
+          );
         })
         .catch(function (error) {
           console.log(error);
@@ -634,11 +706,17 @@ export default {
     activateVaccinationButton() {
       if (this.vaccinationstatuscode == 0) {
         this.alertVaccinationDevelopment = true;
-        axios.get("/api/startvaccinationdevelopment", "").then((res) => {
-          this.vaccinationstatus = "In Entwicklung!";
-          this.vaccinationstatuscode = 1;
-          this.vaccinationbuttonloading = true;
-        });
+        axios
+          .get("/api/startvaccinationdevelopment", {
+            params: {
+              uuid: this.backendUuid,
+            },
+          })
+          .then((res) => {
+            this.vaccinationstatus = "In Entwicklung!";
+            this.vaccinationstatuscode = 1;
+            this.vaccinationbuttonloading = true;
+          });
       }
 
       if (this.vaccinationstatuscode == 2) {
@@ -649,11 +727,17 @@ export default {
     activateMedicationButton() {
       if (this.medicationstatuscode == 0) {
         this.alertMedicationDevelopment = true;
-        axios.get("/api/startmedicationdevelopment", "").then((res) => {
-          this.medicationstatus = "In Entwicklung!";
-          this.medicationstatuscode = 1;
-          this.medicationbuttonloading = true;
-        });
+        axios
+          .get("/api/startmedicationdevelopment", {
+            params: {
+              uuid: this.backendUuid,
+            },
+          })
+          .then((res) => {
+            this.medicationstatus = "In Entwicklung!";
+            this.medicationstatuscode = 1;
+            this.medicationbuttonloading = true;
+          });
       }
 
       if (this.medicationstatuscode == 2) {
@@ -664,17 +748,29 @@ export default {
     },
     startVaccinationUsage() {
       this.vaccinationusage = true;
-      axios.get("/api/startvaccination", "").then((res) => {
-        this.vaccinationstatus = "Impfkampagne läuft!";
-        this.vaccinationbuttonloading = true;
-      });
+      axios
+        .get("/api/startvaccination", {
+          params: {
+            uuid: this.backendUuid,
+          },
+        })
+        .then((res) => {
+          this.vaccinationstatus = "Impfkampagne läuft!";
+          this.vaccinationbuttonloading = true;
+        });
     },
     startMedicationUsage() {
       this.medicationusage = true;
-      axios.get("/api/startmedication", "").then((res) => {
-        this.medicationstatus = "Medizin wird eingesetzt!";
-        this.medicationbuttonloading = true;
-      });
+      axios
+        .get("/api/startmedication", {
+          params: {
+            uuid: this.backendUuid,
+          },
+        })
+        .then((res) => {
+          this.medicationstatus = "Medizin wird eingesetzt!";
+          this.medicationbuttonloading = true;
+        });
     },
     startContactRestrictions(type) {
       if (type == "country") {
@@ -683,6 +779,7 @@ export default {
             type: type,
             name: "deutschland",
             amountofdays: this.restrictionsInput,
+            uuid: this.backendUuid,
           },
         });
       } else if (type == "state") {
@@ -691,6 +788,7 @@ export default {
             type: type,
             name: this.restrictionsInputState,
             amountofdays: this.restrictionsInput,
+            uuid: this.backendUuid,
           },
         });
       } else if (type == "city") {
@@ -699,6 +797,7 @@ export default {
             type: type,
             name: this.restrictionsInputCity,
             amountofdays: this.restrictionsInput,
+            uuid: this.backendUuid,
           },
         });
       }
@@ -707,7 +806,11 @@ export default {
       this.alertSocialDistancing = true;
     },
     startSocialDistancing() {
-      axios.get("/api/activatesocialdistancing", "");
+      axios.get("/api/activatesocialdistancing", {
+        params: {
+          uuid: this.backendUuid,
+        },
+      });
     },
     checkIfMeasureIsDeveloped() {
       if (
@@ -730,12 +833,17 @@ export default {
       }
     },
     pauseSimulation(pause) {
-      if (pause) {
-        axios.get("/api/pausesimulation?pause=true", "");
-      } else if (!pause) {
-        axios.get("/api/pausesimulation?pause=false", "");
-      }
+      axios.get("/api/pausesimulation", {
+        params: {
+          pause: pause,
+          uuid: this.backendUuid,
+        },
+      });
+      this.simulationPaused = pause;
     },
+  },
+  components: {
+    deathChart,
   },
 };
 </script>
