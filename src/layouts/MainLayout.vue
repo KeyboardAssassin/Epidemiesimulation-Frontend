@@ -55,7 +55,7 @@
       />
     </q-page-sticky>
 
-    <q-page-sticky position="left" style="width: 10%; height: 10%">
+    <q-page-sticky position="left" style="width: 12%; height: 10%">
       <div>
         <q-badge color="primary">Weiter</q-badge>
       </div>
@@ -66,6 +66,22 @@
         @click="pauseSimulation(false)"
         :disable="!simulationstarted"
       />
+    </q-page-sticky>
+
+    <q-page-sticky position="left" style="width: 19.5%; height: 10%">
+      <div>
+        <q-badge color="primary">Beenden</q-badge>
+      </div>
+      <div>
+        <q-btn
+          round
+          color="black"
+          icon="logout"
+          @click="endSimulation()"
+          :disable="!simulationstarted"
+          style="margin-left: 15%"
+        />
+      </div>
     </q-page-sticky>
 
     <q-dialog v-model="positiveAlert">
@@ -840,6 +856,15 @@ export default {
         },
       });
       this.simulationPaused = pause;
+    },
+    endSimulation() {
+      location.reload();
+      axios.get("/api/endsimulation", {
+        params: {
+          uuid: this.backendUuid,
+        },
+      });
+      this.pauseSimulation(false);
     },
   },
   components: {
