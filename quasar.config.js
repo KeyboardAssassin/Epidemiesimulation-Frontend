@@ -85,9 +85,6 @@ module.exports = configure(function (ctx) {
         "/api": {
           target: "http://localhost:3000",
           changeOrigin: true,
-          pathRewrite: {
-            "^/api": "",
-          },
         },
       }, // opens browser window automatically
     },

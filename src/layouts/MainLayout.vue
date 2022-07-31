@@ -131,7 +131,7 @@
             v-model="restrictionsInput"
             label="Anzahl an Tagen"
             type="number"
-            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+            :rules="[(val) => val.length <= 2 || 'Bitte maximal zweistellig!']"
           />
         </q-card-section>
 
@@ -154,28 +154,27 @@
           <div class="text-h6">Information</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <q-card-section>
-            Bitte den Namen des Bundeslandes eingeben:
-          </q-card-section>
-          <q-card-section>
+        <q-card-section class="q-pt-none" style="width: 400px">
+          <div style="margin-bottom: 8%">
+            <div class="dialogtext">
+              Bitte den Namen des Bundeslandes eingeben:
+            </div>
             <q-input
               filled
               v-model="restrictionsInputState"
               label="Name des Bundeslandes"
               type="text"
             />
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            Wie lange sollen die Kontaktbeschränkungen anhalten?
-          </q-card-section>
+          </div>
+          <div>
+            <div class="dialogtext">Dauer der Kontaktbeschränkungen:</div>
+          </div>
           <q-input
             filled
             v-model="restrictionsInput"
             label="Anzahl an Tagen"
             type="number"
-            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
+            :rules="[(val) => val.length <= 2 || 'Bitte maximal zweistellig!']"
           />
         </q-card-section>
 
@@ -199,23 +198,31 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-card-section> Bitte den Namen der Stadt eingeben: </q-card-section>
-          <q-input
-            filled
-            v-model="restrictionsInputCity"
-            label="Name der Stadt"
-            type="text"
-          />
-          <q-card-section class="q-pt-none">
-            Wie lange sollen die Kontaktbeschränkungen anhalten?
-          </q-card-section>
-          <q-input
-            filled
-            v-model="restrictionsInput"
-            label="Anzahl an Tagen"
-            type="number"
-            :rules="[(val) => val <= 2 || 'Bitte maximal zweistellig!']"
-          />
+          <div style="margin-bottom: 10%">
+            <q-card-section>
+              Bitte den Namen der Stadt eingeben:
+            </q-card-section>
+            <q-input
+              filled
+              v-model="restrictionsInputCity"
+              label="Name der Stadt"
+              type="text"
+            />
+          </div>
+          <div>
+            <q-card-section class="q-pt-none">
+              Wie lange sollen die Kontaktbeschränkungen anhalten?
+            </q-card-section>
+            <q-input
+              filled
+              v-model="restrictionsInput"
+              label="Anzahl an Tagen"
+              type="number"
+              :rules="[
+                (val) => val.length <= 2 || 'Bitte maximal zweistellig!',
+              ]"
+            />
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -575,6 +582,8 @@ export default {
       medicationusage: false,
       amountOfDaysContactRestrictions: 0,
       backendUuid: "",
+      restrictionsInputState: "",
+      restrictionsInput: "",
     };
   },
   setup() {
@@ -611,7 +620,7 @@ export default {
   methods: {
     startSimulation() {
       axios
-        .post("/api/startsimulation")
+        .post("/api/simulation")
         .then((res) => {
           if ((res.status = 200)) {
             this.simulationstarted = true;
@@ -632,11 +641,9 @@ export default {
         if (!this.simulationPaused) {
           if (this.status == "states") {
             axios
-              .get("/api/getincidenceofeverystate", {
-                params: {
-                  uuid: this.backendUuid,
-                },
-              })
+              .get(
+                `/api/simulation/${this.backendUuid}/country/incidenceofeverystate`
+              )
               .then((response) => (this.rows = response.data))
               .catch(function (error) {
                 console.log(error);
@@ -645,11 +652,9 @@ export default {
               });
           } else if (this.status == "cities") {
             axios
-              .get("/api/getincidenceofeverycity", {
-                params: {
-                  uuid: this.backendUuid,
-                },
-              })
+              .get(
+                `/api/simulation/${this.backendUuid}/country/incidenceofeverycity`
+              )
               .then((response) => (this.rows = response.data))
               .catch(function (error) {
                 console.log(error);
@@ -667,11 +672,7 @@ export default {
     },
     refreshDay() {
       axios
-        .get("/api/getcurrentday", {
-          params: {
-            uuid: this.backendUuid,
-          },
-        })
+        .get(`/api/simulation/${this.backendUuid}/currentday`)
         .then((response) => (this.day = response.data));
     },
     forceRerender() {
@@ -680,10 +681,9 @@ export default {
     changeSpeed(speed) {
       let newInterval = (11 - speed) * 400;
       this.interval = newInterval;
-      axios.get("/api/changespeed", {
+      axios.get(`/api/simulation/${this.backendUuid}/changespeed`, {
         params: {
           speed: newInterval,
-          uuid: this.backendUuid,
         },
       });
     },
@@ -695,11 +695,7 @@ export default {
     },
     updateCountryInfoBox() {
       axios
-        .get("/api/getcountrysummary", {
-          params: {
-            uuid: this.backendUuid,
-          },
-        })
+        .get(`/api/simulation/${this.backendUuid}/country/countrysummary`)
         .then((res) => {
           this.countryIncidence = res.data.incidence;
           this.countryRValue = res.data.rValue;
@@ -723,11 +719,9 @@ export default {
       if (this.vaccinationstatuscode == 0) {
         this.alertVaccinationDevelopment = true;
         axios
-          .get("/api/startvaccinationdevelopment", {
-            params: {
-              uuid: this.backendUuid,
-            },
-          })
+          .put(
+            `/api/simulation/${this.backendUuid}/measure/vaccinationdevelopment`
+          )
           .then((res) => {
             this.vaccinationstatus = "In Entwicklung!";
             this.vaccinationstatuscode = 1;
@@ -744,11 +738,9 @@ export default {
       if (this.medicationstatuscode == 0) {
         this.alertMedicationDevelopment = true;
         axios
-          .get("/api/startmedicationdevelopment", {
-            params: {
-              uuid: this.backendUuid,
-            },
-          })
+          .put(
+            `/api/simulation/${this.backendUuid}/measure/medicationdevelopment`
+          )
           .then((res) => {
             this.medicationstatus = "In Entwicklung!";
             this.medicationstatuscode = 1;
@@ -765,11 +757,7 @@ export default {
     startVaccinationUsage() {
       this.vaccinationusage = true;
       axios
-        .get("/api/startvaccination", {
-          params: {
-            uuid: this.backendUuid,
-          },
-        })
+        .put(`/api/simulation/${this.backendUuid}/measure/vaccination`)
         .then((res) => {
           this.vaccinationstatus = "Impfkampagne läuft!";
           this.vaccinationbuttonloading = true;
@@ -778,11 +766,7 @@ export default {
     startMedicationUsage() {
       this.medicationusage = true;
       axios
-        .get("/api/startmedication", {
-          params: {
-            uuid: this.backendUuid,
-          },
-        })
+        .put(`/api/simulation/${this.backendUuid}/medication`)
         .then((res) => {
           this.medicationstatus = "Medizin wird eingesetzt!";
           this.medicationbuttonloading = true;
@@ -790,43 +774,45 @@ export default {
     },
     startContactRestrictions(type) {
       if (type == "country") {
-        axios.get("/api/activatecontactrestrictions", {
-          params: {
-            type: type,
-            name: "deutschland",
-            amountofdays: this.restrictionsInput,
-            uuid: this.backendUuid,
-          },
-        });
+        axios.put(
+          `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
+          {
+            params: {
+              type: type,
+              name: "deutschland",
+              amountofdays: this.restrictionsInput,
+            },
+          }
+        );
       } else if (type == "state") {
-        axios.get("/api/activatecontactrestrictions", {
-          params: {
-            type: type,
-            name: this.restrictionsInputState,
-            amountofdays: this.restrictionsInput,
-            uuid: this.backendUuid,
-          },
-        });
+        axios.put(
+          `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
+          {
+            params: {
+              type: type,
+              name: this.restrictionsInputState,
+              amountofdays: this.restrictionsInput,
+            },
+          }
+        );
       } else if (type == "city") {
-        axios.get("/api/activatecontactrestrictions", {
-          params: {
-            type: type,
-            name: this.restrictionsInputCity,
-            amountofdays: this.restrictionsInput,
-            uuid: this.backendUuid,
-          },
-        });
+        axios.put(
+          `/api/simlation/${this.backendUuid}/measure/contactrestrictions`,
+          {
+            params: {
+              type: type,
+              name: this.restrictionsInputCity,
+              amountofdays: this.restrictionsInput,
+            },
+          }
+        );
       }
     },
     startSocialDistancingAlert() {
       this.alertSocialDistancing = true;
     },
     startSocialDistancing() {
-      axios.get("/api/activatesocialdistancing", {
-        params: {
-          uuid: this.backendUuid,
-        },
-      });
+      axios.put(`/api/simulation/${this.backendUuid}/measure/socialdistancing`);
     },
     checkIfMeasureIsDeveloped() {
       if (
@@ -849,21 +835,16 @@ export default {
       }
     },
     pauseSimulation(pause) {
-      axios.get("/api/pausesimulation", {
+      axios.put(`/api/simulation/${this.backendUuid}/measure/pause`, {
         params: {
           pause: pause,
-          uuid: this.backendUuid,
         },
       });
       this.simulationPaused = pause;
     },
     endSimulation() {
       location.reload();
-      axios.get("/api/endsimulation", {
-        params: {
-          uuid: this.backendUuid,
-        },
-      });
+      axios.delete(`/api/simulation/${this.backendUuid}/`);
       this.pauseSimulation(false);
     },
   },
