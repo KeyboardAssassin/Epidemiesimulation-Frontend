@@ -40,6 +40,7 @@
   margin-right: 50%;
   padding-top: 2px;
   font-family: Georgia, serif;
+  font-size: 23px;
 }
 
 .dialogtext {
@@ -47,4 +48,19 @@
   justify-content: center;
   margin-top: 5%;
   margin-bottom: 5%;
+}
+
+.obedienceprogress {
+  width: 310px;
+  background-color: black;
+  border-radius: 25px;
+  padding: 0.8%;
+  border: 2px solid;
+  border-color: grey;
+  float: left;
+}
+
+.date {
+  float: left;
+  padding: 1.5%;
 }

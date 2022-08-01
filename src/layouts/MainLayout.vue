@@ -4,7 +4,19 @@
       <q-toolbar>
         <q-toolbar-title>
           <div class="title">Epidemie-Simulation</div>
-          Tag: {{ day }}
+
+          <div class="obedienceprogress">
+            Gehorsahm der Bevölkerung:
+            <q-linear-progress
+              stripe
+              rounded
+              size="14px"
+              :value="obedience"
+              :color="obedienceColor"
+              class="q-mt-sm"
+            />
+          </div>
+          <div class="date">Tag: {{ day }}</div>
         </q-toolbar-title>
 
         <q-btn dense flat round icon="menu" @click="toggleRightDrawer" />
@@ -161,7 +173,7 @@
             </div>
             <q-input
               filled
-              v-model="restrictionsInputState"
+              v-model="restrictionsInputName"
               label="Name des Bundeslandes"
               type="text"
             />
@@ -204,7 +216,7 @@
             </q-card-section>
             <q-input
               filled
-              v-model="restrictionsInputCity"
+              v-model="restrictionsInputName"
               label="Name der Stadt"
               type="text"
             />
@@ -583,7 +595,9 @@ export default {
       amountOfDaysContactRestrictions: 0,
       backendUuid: "",
       restrictionsInputState: "",
-      restrictionsInput: "",
+      restrictionsInput: 0,
+      obedience: 1,
+      obedienceColor: "positive",
     };
   },
   setup() {
@@ -666,6 +680,7 @@ export default {
           this.updateCountryInfoBox();
           this.refreshDay();
           this.checkIfMeasureIsDeveloped();
+          this.refreshObedience();
           this.forceRerender();
         }
       }, this.interval);
@@ -774,7 +789,7 @@ export default {
     },
     startContactRestrictions(type) {
       if (type == "country") {
-        axios.put(
+        axios.get(
           `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
           {
             params: {
@@ -784,24 +799,13 @@ export default {
             },
           }
         );
-      } else if (type == "state") {
-        axios.put(
+      } else {
+        axios.get(
           `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
           {
             params: {
               type: type,
-              name: this.restrictionsInputState,
-              amountofdays: this.restrictionsInput,
-            },
-          }
-        );
-      } else if (type == "city") {
-        axios.put(
-          `/api/simlation/${this.backendUuid}/measure/contactrestrictions`,
-          {
-            params: {
-              type: type,
-              name: this.restrictionsInputCity,
+              name: this.restrictionsInputName,
               amountofdays: this.restrictionsInput,
             },
           }
@@ -835,7 +839,7 @@ export default {
       }
     },
     pauseSimulation(pause) {
-      axios.put(`/api/simulation/${this.backendUuid}/measure/pause`, {
+      axios.get(`/api/simulation/${this.backendUuid}/pause`, {
         params: {
           pause: pause,
         },
@@ -846,6 +850,21 @@ export default {
       location.reload();
       axios.delete(`/api/simulation/${this.backendUuid}/`);
       this.pauseSimulation(false);
+    },
+    refreshObedience() {
+      axios
+        .get(`/api/simulation/${this.backendUuid}/country/obedience`)
+        .then((response) => {
+          this.obedience = response.data;
+          if (this.obedience < 0.3) {
+            this.obedienceColor = "negative";
+          } else if (this.obedience < 0.7) {
+            this.obedienceColor = "warning";
+          } else {
+            this.obedienceColor = "positive";
+          }
+          console.log(this.obedience);
+        });
     },
   },
   components: {
