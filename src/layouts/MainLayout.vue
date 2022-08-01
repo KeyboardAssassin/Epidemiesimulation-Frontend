@@ -54,48 +54,6 @@
       ></q-table>
     </q-drawer>
 
-    <q-page-sticky position="left" style="width: 5%; height: 10%">
-      <div>
-        <q-badge color="primary">Pause</q-badge>
-      </div>
-      <q-btn
-        round
-        color="negative"
-        icon="pan_tool"
-        @click="pauseSimulation(true)"
-        :disable="!simulationstarted"
-      />
-    </q-page-sticky>
-
-    <q-page-sticky position="left" style="width: 12%; height: 10%">
-      <div>
-        <q-badge color="primary">Weiter</q-badge>
-      </div>
-      <q-btn
-        round
-        color="positive"
-        icon="done"
-        @click="pauseSimulation(false)"
-        :disable="!simulationstarted"
-      />
-    </q-page-sticky>
-
-    <q-page-sticky position="left" style="width: 19.5%; height: 10%">
-      <div>
-        <q-badge color="primary">Beenden</q-badge>
-      </div>
-      <div>
-        <q-btn
-          round
-          color="black"
-          icon="logout"
-          @click="endSimulation()"
-          :disable="!simulationstarted"
-          style="margin-left: 15%"
-        />
-      </div>
-    </q-page-sticky>
-
     <q-dialog v-model="positiveAlert">
       <q-card>
         <q-card-section>
@@ -303,49 +261,92 @@
       </q-card>
     </q-dialog>
 
-    <q-page-container
-      style="width: 60%; margin-right: 60%; margin-left: 40%; margin-top: 0.5%"
-    >
-      <q-badge color="primary" style="margin-right: 60%">
-        Geschwindkigkeit der Tage:
-      </q-badge>
-      <q-slider
-        @change="changeSpeed(model)"
-        class="q-mt-xl"
-        v-model="model"
-        color="blue"
-        markers
-        :marker-labels="fnMarkerLabel"
-        :min="0"
-        :max="10"
-        :disable="!simulationstarted"
-        style="margin-top: 1%"
-      />
+    <q-page-container style="width: 73%; margin-left: 27%; margin-top: 0.5%">
+      <div class="sliderbundle">
+        <q-badge color="primary" style="margin-right: 60%">
+          Geschwindkigkeit der Tage:
+        </q-badge>
+        <q-slider
+          @change="changeSpeed(model)"
+          class="q-mt-xl"
+          v-model="model"
+          color="blue"
+          markers
+          :marker-labels="fnMarkerLabel"
+          :min="0"
+          :max="10"
+          :disable="!simulationstarted"
+          style="margin-top: 0%; margin-left: 0.1%; float: left"
+        />
+        <div v-if="!simulationstarted" class="controlling">
+          <q-btn
+            id="simulation-button"
+            label="Start Simulation"
+            color="positive"
+            @click="startSimulation()"
+          />
+        </div>
+      </div>
 
-      <q-page-sticky position="left" style="width: 19%; height: 95%">
-        <q-card style="background-color: #dcdcdc; height: 0%">
+      <q-page-sticky position="left" style="width: 19%; height: 80%">
+        <div class="leftpanel">
           <q-card-section>
-            <pre>
-              <text-body1>
-    Deutschland
-      Inzidenz: {{ countryIncidence }}
-      R-Wert: {{ countryRValue }}
-      Neuinfektionenen: {{ countryNewInfections }}
-      Todesfälle: {{ countryDeadCases }}
-
-    Maßnahmen
-      Impfstoff:    <span v-if="vaccinationstatuscode == 0" style="color:red">{{ vaccinationstatus }}</span>
-                    <span v-else-if="vaccinationstatuscode == 1" style="color:orange">{{ vaccinationstatus }}</span>
-                    <span v-else-if="vaccinationstatuscode == 2 || vaccinationstatuscode == 3" style="color:green">{{ vaccinationstatus }}</span>
-      Medikamente:  <span v-if="medicationstatuscode == 0" style="color:red">{{ medicationstatus }}</span>
-                    <span v-else-if="medicationstatuscode == 1" style="color:orange">{{ medicationstatus }}</span>
-                    <span v-else-if="medicationstatuscode == 2 || medicationstatuscode == 3" style="color:green">{{ medicationstatus }}</span>
-
-                    <deathChart ref="deathChartRef"></deathChart>
-                </text-body1>
-              </pre>
+            <div class="headline">
+              <p>Deutschland</p>
+            </div>
+            <div class="countrypanel">
+              <div class="panelsection">
+                <div class="panelelement">Inzidenz: {{ countryIncidence }}</div>
+                <div class="panelelement">R-Wert: {{ countryRValue }}</div>
+                <div class="panelelement">
+                  Neuinfektionenen: {{ countryNewInfections }}
+                </div>
+                <div class="panelelement">
+                  Todesfälle: {{ countryDeadCases }}
+                </div>
+              </div>
+              <div class="panelsection">
+                <div class="panelelement">
+                  Maßnahmen Impfstoff:
+                  <span v-if="vaccinationstatuscode == 0" style="color: red">{{
+                    vaccinationstatus
+                  }}</span>
+                  <span
+                    v-else-if="vaccinationstatuscode == 1"
+                    style="color: orange"
+                    >{{ vaccinationstatus }}</span
+                  >
+                  <span
+                    v-else-if="
+                      vaccinationstatuscode == 2 || vaccinationstatuscode == 3
+                    "
+                    style="color: green"
+                    >{{ vaccinationstatus }}</span
+                  >
+                </div>
+                <div class="panelelement">
+                  Medikamente:
+                  <span v-if="medicationstatuscode == 0" style="color: red">{{
+                    medicationstatus
+                  }}</span>
+                  <span
+                    v-else-if="medicationstatuscode == 1"
+                    style="color: orange"
+                    >{{ medicationstatus }}</span
+                  >
+                  <span
+                    v-else-if="
+                      medicationstatuscode == 2 || medicationstatuscode == 3
+                    "
+                    style="color: green"
+                    >{{ medicationstatus }}</span
+                  >
+                </div>
+              </div>
+            </div>
+            <deathChart ref="deathChartRef"></deathChart>
           </q-card-section>
-        </q-card>
+        </div>
       </q-page-sticky>
 
       <div class="map">
@@ -359,16 +360,40 @@
           alt="Map of Germany"
           src="../assets/cities.png"
         />
-      </div>
+        <div class="pausemenu">
+          <div class="pauseBtnBox">
+            <q-badge color="primary">Pause</q-badge>
+            <q-btn
+              round
+              color="negative"
+              icon="pan_tool"
+              @click="pauseSimulation(true)"
+              :disable="!simulationstarted && false"
+            />
+          </div>
 
-      <br />
-      <div v-if="!simulationstarted" class="controlling">
-        <q-btn
-          id="simulation-button"
-          label="Start Simulation"
-          color="positive"
-          @click="startSimulation()"
-        />
+          <div class="pauseBtnBox">
+            <q-badge color="primary">Weiter</q-badge>
+            <q-btn
+              round
+              color="positive"
+              icon="done"
+              @click="pauseSimulation(false)"
+              :disable="!simulationstarted"
+            />
+          </div>
+
+          <div class="pauseBtnBox">
+            <q-badge color="primary">Beenden</q-badge>
+            <q-btn
+              round
+              color="black"
+              icon="logout"
+              @click="endSimulation()"
+              :disable="!simulationstarted"
+            />
+          </div>
+        </div>
       </div>
     </q-page-container>
 
@@ -478,10 +503,13 @@
 import { ref, computed } from "vue";
 import { defineAsyncComponent } from "vue";
 import axios from "axios";
+import useNotify from "src/composable/UseNotify";
 
 let deathChart = defineAsyncComponent(() =>
   import("components/charts/deathChart.vue")
 );
+
+const { notifyError, notifySuccess } = useNotify();
 
 const columns = [
   {
@@ -845,6 +873,7 @@ export default {
         },
       });
       this.simulationPaused = pause;
+      notifyError("Test !");
     },
     endSimulation() {
       location.reload();
@@ -855,15 +884,21 @@ export default {
       axios
         .get(`/api/simulation/${this.backendUuid}/country/obedience`)
         .then((response) => {
-          this.obedience = response.data;
-          if (this.obedience < 0.3) {
-            this.obedienceColor = "negative";
-          } else if (this.obedience < 0.7) {
-            this.obedienceColor = "warning";
-          } else {
+          if (this.obedience > 0.7 && response.data > 0.7) {
             this.obedienceColor = "positive";
           }
-          console.log(this.obedience);
+          if (this.obedience < 0.7 && response.data > 0.7) {
+            notifySuccess(
+              "Der Gehorsam deiner Bevölkerung ist wieder über 70% !"
+            );
+          }
+          if (this.obedience > 0.3 && response.data < 0.3) {
+            this.obedienceColor = "negative";
+            notifyError("Achtung der Gehorsam ist nun unter 30% !");
+          } else if (this.obedience > 0.7 && response.data < 0.7) {
+            this.obedienceColor = "warning";
+          }
+          this.obedience = response.data;
         });
     },
   },

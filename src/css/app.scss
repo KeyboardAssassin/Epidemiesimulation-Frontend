@@ -26,13 +26,19 @@
 }
 
 .map {
-  margin-top: 115px;
-  margin-right: 50%;
+  margin-top: 50px;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 5%;
 }
 
 .controlling {
-  margin-left: 14%;
-  margin-bottom: 10px;
+  margin-left: 80%;
+}
+
+.sliderbundle {
+  float: left;
+  width: 80%;
 }
 
 .title {
@@ -51,9 +57,8 @@
 }
 
 .obedienceprogress {
-  width: 310px;
   background-color: black;
-  border-radius: 25px;
+  border-radius: 20px;
   padding: 0.8%;
   border: 2px solid;
   border-color: grey;
@@ -63,4 +68,58 @@
 .date {
   float: left;
   padding: 1.5%;
+}
+
+.pausemenu {
+  background-color: grey;
+  border-color: black;
+  border: 2px solid;
+  margin-left: 70%;
+  border-radius: 10px;
+  float: left;
+  width: 320px;
+}
+
+.pauseBtnBox {
+  margin: 1%;
+  padding: 1%;
+  float: left;
+}
+
+.countrypanel {
+  font-size: 14px;
+  font-family: Arial, Helvetica, sans-serif;
+  border-radius: 10px;
+  border: 1px;
+}
+
+.headline {
+  position: relative;
+  font-size: 24px;
+  text-align: center;
+  height: 40px;
+  border-bottom: 1px solid;
+  border-top: 1px solid;
+  border-color: black;
+  margin-top: 2%;
+  margin-bottom: 2%;
+}
+
+.leftpanel {
+  background-color: #c4c3c3;
+  border: 1px;
+  border-radius: 10px;
+}
+
+.panelsection {
+  border-bottom: 1px solid;
+  border-color: black;
+  margin-top: 3%;
+  margin-bottom: 3%;
+}
+
+.panelelement {
+  margin: 3%;
+  margin-left: 7%;
+  font-size: 15px;
 }
