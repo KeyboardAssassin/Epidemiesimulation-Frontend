@@ -91,6 +91,7 @@
   font-family: Arial, Helvetica, sans-serif;
   border-radius: 10px;
   border: 1px;
+  border-color: black;
 }
 
 .headline {
@@ -107,7 +108,8 @@
 
 .leftpanel {
   background-color: #c4c3c3;
-  border: 1px;
+  border: 2px solid;
+  border-color: black;
   border-radius: 10px;
 }
 
@@ -122,4 +124,38 @@
   margin: 3%;
   margin-left: 7%;
   font-size: 15px;
+}
+
+.measureContainer {
+  background-color: black;
+  margin-left: 61%;
+  padding: 1%;
+  height: 85%;
+  width: 37%;
+  float: left;
+  border-radius: 10px;
+  color: white;
+  border: 2px solid;
+  border-color: grey;
+}
+
+.measureElement {
+  padding-top: 2%;
+  padding-bottom: 2%;
+}
+
+.left {
+  width: 50%;
+  float: left;
+  padding: 1%;
+  padding-top: 3%;
+  top: 50%;
+  height: 70px;
+}
+
+.right {
+  width: 50%;
+  float: right;
+  padding: 2%;
+  height: 70px;
 }

@@ -349,6 +349,19 @@
         </div>
       </q-page-sticky>
 
+      <div class="measureContainer">
+        Maßnahmen aktiv: {{ measureList.length }}
+        <div
+          v-for="(measureListElement, index) in measureList"
+          :key="measureListElement.measure"
+        >
+          <MeasureElement
+            :measureProp="measureListElement"
+            :measureIndex="index"
+            @removeelement-index="removeElement()"
+          />
+        </div>
+      </div>
       <div class="map">
         <img
           v-if="status == 'states'"
@@ -504,6 +517,7 @@ import { ref, computed } from "vue";
 import { defineAsyncComponent } from "vue";
 import axios from "axios";
 import useNotify from "src/composable/UseNotify";
+import MeasureElement from "src/components/measureElement.vue";
 
 let deathChart = defineAsyncComponent(() =>
   import("components/charts/deathChart.vue")
@@ -600,6 +614,7 @@ let rows = [
 export default {
   data() {
     return {
+      newMeasure: "",
       submitting: false,
       simulationstarted: false,
       interval: 1500,
@@ -626,6 +641,7 @@ export default {
       restrictionsInput: 0,
       obedience: 1,
       obedienceColor: "positive",
+      measureList: [],
     };
   },
   setup() {
@@ -713,6 +729,13 @@ export default {
         }
       }, this.interval);
     },
+    addMeasure(measureInput, targetInput, daysLeftInput) {
+      this.measureList.push({
+        measure: measureInput,
+        target: targetInput,
+        daysLeft: daysLeftInput,
+      });
+    },
     refreshDay() {
       axios
         .get(`/api/simulation/${this.backendUuid}/currentday`)
@@ -724,7 +747,7 @@ export default {
     changeSpeed(speed) {
       let newInterval = (11 - speed) * 400;
       this.interval = newInterval;
-      axios.get(`/api/simulation/${this.backendUuid}/changespeed`, {
+      axios.get(`/api/simulation/${this.backendUuid}/speed`, {
         params: {
           speed: newInterval,
         },
@@ -738,7 +761,7 @@ export default {
     },
     updateCountryInfoBox() {
       axios
-        .get(`/api/simulation/${this.backendUuid}/country/countrysummary`)
+        .get(`/api/simulation/${this.backendUuid}/country/summary`)
         .then((res) => {
           this.countryIncidence = res.data.incidence;
           this.countryRValue = res.data.rValue;
@@ -827,6 +850,11 @@ export default {
             },
           }
         );
+        this.addMeasure(
+          "Kontaktbeschärungen",
+          "Deutschland",
+          this.restrictionsInput
+        );
       } else {
         axios.get(
           `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
@@ -838,6 +866,11 @@ export default {
             },
           }
         );
+        this.addMeasure(
+          "Kontaktbeschärungen",
+          this.restrictionsInputName,
+          this.restrictionsInput
+        );
       }
     },
     startSocialDistancingAlert() {
@@ -845,6 +878,7 @@ export default {
     },
     startSocialDistancing() {
       axios.put(`/api/simulation/${this.backendUuid}/measure/socialdistancing`);
+      this.addMeasure("Abstandsregeln", "Deutschland", 99);
     },
     checkIfMeasureIsDeveloped() {
       if (
@@ -901,9 +935,15 @@ export default {
           this.obedience = response.data;
         });
     },
+    removeElement(index) {
+      this.measureList.splice(index, 1);
+    },
   },
   components: {
     deathChart,
+    MeasureElement,
   },
 };
 </script>
+
+MeasureElement
