@@ -545,6 +545,11 @@ const columns = [
   },
 ];
 
+let map = new Map();
+
+map.set("bayern", ["ingolstadt", "Nürnberg", "München"]);
+map.set("Thüringen", ["Erfurt", "Jena"]);
+
 let rows = [
   {
     name: "Bayern",
@@ -642,20 +647,7 @@ export default {
       restrictionsInput: 0,
       obedience: 1,
       obedienceColor: "positive",
-      measureList: [
-        {
-          measure: "Kontaktbeschränkungen",
-          target: "State",
-          region: "Bayern",
-          daysLeft: 30,
-        },
-        {
-          measure: "Kontaktbeschränkungen",
-          target: "State",
-          region: "Thüringen",
-          daysLeft: 30,
-        },
-      ],
+      measureList: [],
     };
   },
   setup() {
@@ -744,6 +736,34 @@ export default {
       }, this.interval);
     },
     addMeasure(measureInput, regionInput, targetInput, daysLeftInput) {
+      if (regionInput == "country") {
+        this.measureList.forEach((element, index) => {
+          if (element.measure == measureInput) {
+            this.measureList.splice(index, 1);
+          }
+        });
+      }
+
+      if (regionInput == "state") {
+        console.log(map);
+        let citiesOfState = map.get(targetInput);
+        console.log(citiesOfState);
+        this.measureList.forEach((element, index) => {
+          if (element.region == "state" && element.target == targetInput) {
+            this.measureList.splice(index, 1);
+          }
+          if (
+            element.region == "city" &&
+            citiesOfState.includes(element.target)
+          ) {
+            this.measureList.splice(index, 1);
+          }
+        });
+
+        if (regionInput == "city") {
+        }
+      }
+
       this.measureList.push({
         measure: measureInput,
         target: targetInput,
@@ -962,6 +982,9 @@ export default {
           this.removeElement(index);
         }
       });
+    },
+    deleteOldMeasures() {
+      this.measureList;
     },
   },
   components: {
