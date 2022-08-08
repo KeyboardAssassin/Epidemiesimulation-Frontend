@@ -37,7 +37,7 @@ export default {
           curve: "smooth",
         },
         title: {
-          text: "Anzahl an Toten",
+          text: "Fallzahlen",
           align: "left",
         },
         grid: {

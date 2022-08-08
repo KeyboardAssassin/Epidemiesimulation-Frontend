@@ -128,10 +128,10 @@
 
 .measureContainer {
   background-color: black;
-  margin-left: 61%;
+  margin-left: 59%;
   padding: 1%;
   height: 85%;
-  width: 37%;
+  width: 40%;
   float: left;
   border-radius: 10px;
   color: white;
@@ -150,12 +150,22 @@
   padding: 1%;
   padding-top: 3%;
   top: 50%;
-  height: 70px;
+  height: 100px;
 }
 
 .right {
   width: 50%;
   float: right;
   padding: 2%;
-  height: 70px;
+  height: 100px;
+  padding-top: 7%;
+}
+
+.measurebox {
+  color: black;
+  background-color: grey;
+  padding: 4%;
+  border-radius: 10px;
+  border: 1px solid;
+  border-color: white;
 }

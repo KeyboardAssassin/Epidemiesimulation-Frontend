@@ -358,6 +358,7 @@
           <MeasureElement
             :measureProp="measureListElement"
             :measureIndex="index"
+            :uuid="this.backendUuid"
             @removeelement-index="removeElement()"
           />
         </div>
@@ -538,7 +539,7 @@ const columns = [
   {
     name: "incidence",
     align: "center",
-    label: "incidence",
+    label: "Inzidenz",
     field: "incidence",
     sortable: true,
   },
@@ -641,7 +642,20 @@ export default {
       restrictionsInput: 0,
       obedience: 1,
       obedienceColor: "positive",
-      measureList: [],
+      measureList: [
+        {
+          measure: "Kontaktbeschränkungen",
+          target: "State",
+          region: "Bayern",
+          daysLeft: 30,
+        },
+        {
+          measure: "Kontaktbeschränkungen",
+          target: "State",
+          region: "Thüringen",
+          daysLeft: 30,
+        },
+      ],
     };
   },
   setup() {
@@ -720,19 +734,20 @@ export default {
                 return;
               });
           }
-
           this.updateCountryInfoBox();
           this.refreshDay();
           this.checkIfMeasureIsDeveloped();
           this.refreshObedience();
+          this.removeOneDayOnEveryMeasure();
           this.forceRerender();
         }
       }, this.interval);
     },
-    addMeasure(measureInput, targetInput, daysLeftInput) {
+    addMeasure(measureInput, regionInput, targetInput, daysLeftInput) {
       this.measureList.push({
         measure: measureInput,
         target: targetInput,
+        region: regionInput,
         daysLeft: daysLeftInput,
       });
     },
@@ -838,20 +853,21 @@ export default {
           this.medicationbuttonloading = true;
         });
     },
-    startContactRestrictions(type) {
-      if (type == "country") {
+    startContactRestrictions(regionInput) {
+      if (regionInput == "country") {
         axios.get(
           `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
           {
             params: {
-              type: type,
+              type: regionInput,
               name: "deutschland",
               amountofdays: this.restrictionsInput,
             },
           }
         );
         this.addMeasure(
-          "Kontaktbeschärungen",
+          "Kontaktbeschräkungen",
+          regionInput,
           "Deutschland",
           this.restrictionsInput
         );
@@ -860,14 +876,15 @@ export default {
           `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
           {
             params: {
-              type: type,
+              type: regionInput,
               name: this.restrictionsInputName,
               amountofdays: this.restrictionsInput,
             },
           }
         );
         this.addMeasure(
-          "Kontaktbeschärungen",
+          "Kontaktbeschärkungen",
+          regionInput,
           this.restrictionsInputName,
           this.restrictionsInput
         );
@@ -878,7 +895,7 @@ export default {
     },
     startSocialDistancing() {
       axios.put(`/api/simulation/${this.backendUuid}/measure/socialdistancing`);
-      this.addMeasure("Abstandsregeln", "Deutschland", 99);
+      this.addMeasure("Abstandsregeln", "country", "Deutschland", -1);
     },
     checkIfMeasureIsDeveloped() {
       if (
@@ -907,7 +924,6 @@ export default {
         },
       });
       this.simulationPaused = pause;
-      notifyError("Test !");
     },
     endSimulation() {
       location.reload();
@@ -938,6 +954,15 @@ export default {
     removeElement(index) {
       this.measureList.splice(index, 1);
     },
+    removeOneDayOnEveryMeasure() {
+      this.measureList.forEach((element, index) => {
+        if (element.daysLeft > 1) {
+          element.daysLeft--;
+        } else if (element.daysLeft == 1) {
+          this.removeElement(index);
+        }
+      });
+    },
   },
   components: {
     deathChart,
@@ -945,5 +970,3 @@ export default {
   },
 };
 </script>
-
-MeasureElement
