@@ -1,3 +1,33 @@
+<script>
+import { 
+  defineAsyncComponent,
+  defineComponent,
+} from "vue";
+import MeasureElement from "components/MeasureElement.vue";
+import { useMain } from './composables/main';
+
+let DeathChart = defineAsyncComponent(() =>
+  import("components/charts/DeathChart.vue")
+);
+
+export default defineComponent({
+  name: 'MainLayout',
+
+  components: {
+    DeathChart,
+    MeasureElement,
+  },
+
+  setup() {
+    const main = useMain()
+    
+    return {
+      ...main, // Spread all the refs and functions from the useMain composable so they can be accessed in the view
+    };
+  },
+})
+</script>
+
 <template>
   <q-layout view="hHh lpR fFf">
     <q-header elevated class="bg-primary text-white" height-hint="98">
@@ -6,7 +36,7 @@
           <div class="title">Epidemie-Simulation</div>
 
           <div class="obedienceprogress">
-            Gehorsahm der Bevölkerung:
+            Gehorsam der Bevölkerung:
             <q-linear-progress
               stripe
               rounded
@@ -77,7 +107,7 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <center>Simulation wurde nicht gestartet!</center>
+          <span>Simulation wurde nicht gestartet!</span>
           Vermutlich läuft die Serveranwendung im Hintergrund nicht.
         </q-card-section>
 
@@ -207,6 +237,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- alert for social distancing (country) -->
     <q-dialog v-model="alertSocialDistancing">
       <q-card>
         <q-card-section>
@@ -229,6 +260,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- alert for medication development -->
     <q-dialog v-model="alertMedicationDevelopment">
       <q-card>
         <q-card-section>
@@ -245,6 +277,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- alert for vaccination development -->
     <q-dialog v-model="alertVaccinationDevelopment">
       <q-card>
         <q-card-section>
@@ -261,10 +294,28 @@
       </q-card>
     </q-dialog>
 
+    <!-- alert if the simulation ended -->
+    <q-dialog v-model="simulationEnded">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Information</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Epidemie an Tag {{ day }} beendet!<br>
+          Es gab seit 7 Tagen keine Neuinfektionen!
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-page-container style="width: 73%; margin-left: 27%; margin-top: 0.5%">
       <div class="sliderbundle">
         <q-badge color="primary" style="margin-right: 60%">
-          Geschwindkigkeit der Tage:
+          Geschwindigkeit der Tage:
         </q-badge>
         <q-slider
           @change="changeSpeed(model)"
@@ -307,7 +358,7 @@
               </div>
               <div class="panelsection">
                 <div class="panelelement">
-                  Maßnahmen Impfstoff:
+                  Impfstoff:
                   <span v-if="vaccinationstatuscode == 0" style="color: red">{{
                     vaccinationstatus
                   }}</span>
@@ -344,7 +395,7 @@
                 </div>
               </div>
             </div>
-            <deathChart ref="deathChartRef"></deathChart>
+            <DeathChart ref="deathChartRef"></DeathChart>
           </q-card-section>
         </div>
       </q-page-sticky>
@@ -367,12 +418,12 @@
         <img
           v-if="status == 'states'"
           alt="Map of Germany"
-          src="../assets/states.png"
+          src="../../assets/states.png"
         />
         <img
           v-if="status == 'cities'"
           alt="Map of Germany"
-          src="../assets/cities.png"
+          src="../../assets/cities.png"
         />
         <div class="pausemenu">
           <div class="pauseBtnBox">
@@ -513,483 +564,6 @@
   </q-layout>
 </template>
 
-<script>
-import { ref, computed } from "vue";
-import { defineAsyncComponent } from "vue";
-import axios from "axios";
-import useNotify from "src/composable/UseNotify";
-import MeasureElement from "src/components/measureElement.vue";
+<style scoped>
 
-let deathChart = defineAsyncComponent(() =>
-  import("components/charts/deathChart.vue")
-);
-
-const { notifyError, notifySuccess } = useNotify();
-
-const columns = [
-  {
-    name: "name",
-    required: true,
-    label: "Bundesland/Stadt",
-    align: "left",
-    field: (row) => row.name,
-    format: (val) => `${val}`,
-    sortable: true,
-  },
-  {
-    name: "incidence",
-    align: "center",
-    label: "Inzidenz",
-    field: "incidence",
-    sortable: true,
-  },
-];
-
-let map = new Map();
-
-map.set("bayern", ["ingolstadt", "Nürnberg", "München"]);
-map.set("Thüringen", ["Erfurt", "Jena"]);
-
-let rows = [
-  {
-    name: "Bayern",
-    incidence: 0,
-  },
-  {
-    name: "Thüringen",
-    incidence: 0,
-  },
-  {
-    name: "Hessen",
-    incidence: 0,
-  },
-  {
-    name: "Baden-Württemberg",
-    incidence: 0,
-  },
-  {
-    name: "Sachsen",
-    incidence: 0,
-  },
-  {
-    name: "Niedersachsen",
-    incidence: 0,
-  },
-  {
-    name: "Rheinlandpfalz",
-    incidence: 0,
-  },
-  {
-    name: "Schleswigholstein",
-    incidence: 0,
-  },
-  {
-    name: "Saarland",
-    incidence: 0,
-  },
-  {
-    name: "Berlin",
-    incidence: 0,
-  },
-  {
-    name: "Brandenburg",
-    incidence: 0,
-  },
-  {
-    name: "Nordrhein-Westfalen",
-    incidence: 0,
-  },
-  {
-    name: "Hamburg",
-    incidence: 0,
-  },
-  {
-    name: "Mecklenburg-Vorpommern",
-    incidence: 0,
-  },
-  {
-    name: "Bremen",
-    incidence: 0,
-  },
-  {
-    name: "Sachsenanhalt",
-    incidence: 0,
-  },
-];
-
-export default {
-  data() {
-    return {
-      newMeasure: "",
-      submitting: false,
-      simulationstarted: false,
-      interval: 1500,
-      day: 0,
-      componentKey: 0,
-      status: "states",
-      countryIncidence: 0,
-      countryRValue: 0,
-      countryNewInfections: 0,
-      countryDeadCases: 0,
-      vaccinationstatus: "Nicht entwickelt",
-      medicationstatus: "Nicht entwickelt",
-      vaccinationstatuscode: 0,
-      medicationstatuscode: 0,
-      vaccinationbuttonloading: false,
-      medicationbuttonloading: false,
-      vaccinationdeveloped: false,
-      medicationdeveloped: false,
-      vaccinationusage: false,
-      medicationusage: false,
-      amountOfDaysContactRestrictions: 0,
-      backendUuid: "",
-      restrictionsInputState: "",
-      restrictionsInput: 0,
-      obedience: 1,
-      obedienceColor: "positive",
-      measureList: [],
-    };
-  },
-  setup() {
-    const model = ref(2);
-    const priceModel = ref(4);
-    const rightDrawerOpen = ref(false);
-
-    return {
-      pagination: {
-        rowsPerPage: 30, // current rows per page being displayed
-      },
-      negativeAlert: ref(false),
-      positiveAlert: ref(false),
-      simulationPaused: ref(false),
-      alertContactRestrictionsCountry: ref(false),
-      alertContactRestrictionsState: ref(false),
-      alertContactRestrictionsCity: ref(false),
-      alertSocialDistancing: ref(false),
-      alertMedicationDevelopment: ref(false),
-      alertVaccinationDevelopment: ref(false),
-      rightDrawerOpen,
-      toggleRightDrawer() {
-        rightDrawerOpen.value = !rightDrawerOpen.value;
-      },
-      address: ref(""),
-      columns,
-      rows,
-      model,
-      fnMarkerLabel: (val) => `${10 * val}%`,
-      priceModel,
-      priceLabel: computed(() => `$ ${priceModel.value}`),
-    };
-  },
-  methods: {
-    startSimulation() {
-      axios
-        .post("/api/simulation")
-        .then((res) => {
-          if ((res.status = 200)) {
-            this.simulationstarted = true;
-            this.positiveAlert = true;
-            this.submitting = true;
-            this.backendUuid = res.data;
-          }
-        })
-        .catch((err) => {
-          this.negativeAlert = true;
-          return;
-        });
-
-      this.getAllStates(this.interval);
-    },
-    getAllStates() {
-      let intervalObj = window.setInterval(() => {
-        if (!this.simulationPaused) {
-          if (this.status == "states") {
-            axios
-              .get(
-                `/api/simulation/${this.backendUuid}/country/incidenceofeverystate`
-              )
-              .then((response) => (this.rows = response.data))
-              .catch(function (error) {
-                console.log(error);
-                clearInterval(intervalObj);
-                return;
-              });
-          } else if (this.status == "cities") {
-            axios
-              .get(
-                `/api/simulation/${this.backendUuid}/country/incidenceofeverycity`
-              )
-              .then((response) => (this.rows = response.data))
-              .catch(function (error) {
-                console.log(error);
-                clearInterval(intervalObj);
-                return;
-              });
-          }
-          this.updateCountryInfoBox();
-          this.refreshDay();
-          this.checkIfMeasureIsDeveloped();
-          this.refreshObedience();
-          this.removeOneDayOnEveryMeasure();
-          this.forceRerender();
-        }
-      }, this.interval);
-    },
-    addMeasure(measureInput, regionInput, targetInput, daysLeftInput) {
-      if (regionInput == "country") {
-        this.measureList.forEach((element, index) => {
-          if (element.measure == measureInput) {
-            this.measureList.splice(index, 1);
-          }
-        });
-      }
-
-      if (regionInput == "state") {
-        console.log(map);
-        let citiesOfState = map.get(targetInput);
-        console.log(citiesOfState);
-        this.measureList.forEach((element, index) => {
-          if (element.region == "state" && element.target == targetInput) {
-            this.measureList.splice(index, 1);
-          }
-          if (
-            element.region == "city" &&
-            citiesOfState.includes(element.target)
-          ) {
-            this.measureList.splice(index, 1);
-          }
-        });
-
-        if (regionInput == "city") {
-        }
-      }
-
-      this.measureList.push({
-        measure: measureInput,
-        target: targetInput,
-        region: regionInput,
-        daysLeft: daysLeftInput,
-      });
-    },
-    refreshDay() {
-      axios
-        .get(`/api/simulation/${this.backendUuid}/currentday`)
-        .then((response) => (this.day = response.data));
-    },
-    forceRerender() {
-      this.componentKey += 1;
-    },
-    changeSpeed(speed) {
-      let newInterval = (11 - speed) * 400;
-      this.interval = newInterval;
-      axios.get(`/api/simulation/${this.backendUuid}/speed`, {
-        params: {
-          speed: newInterval,
-        },
-      });
-    },
-    fillStates() {
-      this.status = "states";
-    },
-    fillCities() {
-      this.status = "cities";
-    },
-    updateCountryInfoBox() {
-      axios
-        .get(`/api/simulation/${this.backendUuid}/country/summary`)
-        .then((res) => {
-          this.countryIncidence = res.data.incidence;
-          this.countryRValue = res.data.rValue;
-          this.countryNewInfections = res.data.newInfections;
-          this.countryDeadCases = res.data.newDeathCases;
-          this.vaccinationdeveloped = res.data.vaccinationDeveloped;
-          this.medicationdeveloped = res.data.medicationDeveloped;
-
-          this.$refs.deathChartRef.appendDeathList(
-            this.countryDeadCases,
-            this.countryNewInfections
-          );
-        })
-        .catch(function (error) {
-          console.log(error);
-          clearInterval(intervalObj);
-          return;
-        });
-    },
-    activateVaccinationButton() {
-      if (this.vaccinationstatuscode == 0) {
-        this.alertVaccinationDevelopment = true;
-        axios
-          .put(
-            `/api/simulation/${this.backendUuid}/measure/vaccinationdevelopment`
-          )
-          .then((res) => {
-            this.vaccinationstatus = "In Entwicklung!";
-            this.vaccinationstatuscode = 1;
-            this.vaccinationbuttonloading = true;
-          });
-      }
-
-      if (this.vaccinationstatuscode == 2) {
-        this.startVaccinationUsage();
-        this.vaccinationstatuscode = 3;
-      }
-    },
-    activateMedicationButton() {
-      if (this.medicationstatuscode == 0) {
-        this.alertMedicationDevelopment = true;
-        axios
-          .put(
-            `/api/simulation/${this.backendUuid}/measure/medicationdevelopment`
-          )
-          .then((res) => {
-            this.medicationstatus = "In Entwicklung!";
-            this.medicationstatuscode = 1;
-            this.medicationbuttonloading = true;
-          });
-      }
-
-      if (this.medicationstatuscode == 2) {
-        this.startMedicationUsage();
-        this.medicationstatuscode = 3;
-        this.medicationstatus = "Medizin wird eingesetzt!";
-      }
-    },
-    startVaccinationUsage() {
-      this.vaccinationusage = true;
-      axios
-        .put(`/api/simulation/${this.backendUuid}/measure/vaccination`)
-        .then((res) => {
-          this.vaccinationstatus = "Impfkampagne läuft!";
-          this.vaccinationbuttonloading = true;
-        });
-    },
-    startMedicationUsage() {
-      this.medicationusage = true;
-      axios
-        .put(`/api/simulation/${this.backendUuid}/medication`)
-        .then((res) => {
-          this.medicationstatus = "Medizin wird eingesetzt!";
-          this.medicationbuttonloading = true;
-        });
-    },
-    startContactRestrictions(regionInput) {
-      if (regionInput == "country") {
-        axios.get(
-          `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
-          {
-            params: {
-              type: regionInput,
-              name: "deutschland",
-              amountofdays: this.restrictionsInput,
-            },
-          }
-        );
-        this.addMeasure(
-          "Kontaktbeschräkungen",
-          regionInput,
-          "Deutschland",
-          this.restrictionsInput
-        );
-      } else {
-        axios.get(
-          `/api/simulation/${this.backendUuid}/measure/contactrestrictions`,
-          {
-            params: {
-              type: regionInput,
-              name: this.restrictionsInputName,
-              amountofdays: this.restrictionsInput,
-            },
-          }
-        );
-        this.addMeasure(
-          "Kontaktbeschärkungen",
-          regionInput,
-          this.restrictionsInputName,
-          this.restrictionsInput
-        );
-      }
-    },
-    startSocialDistancingAlert() {
-      this.alertSocialDistancing = true;
-    },
-    startSocialDistancing() {
-      axios.put(`/api/simulation/${this.backendUuid}/measure/socialdistancing`);
-      this.addMeasure("Abstandsregeln", "country", "Deutschland", -1);
-    },
-    checkIfMeasureIsDeveloped() {
-      if (
-        this.vaccinationdeveloped &&
-        !this.vaccinationusage &&
-        this.vaccinationstatuscode == 1
-      ) {
-        this.vaccinationstatus = "Entwickelt!";
-        this.vaccinationstatuscode = 2;
-        this.vaccinationbuttonloading = false;
-      }
-      if (
-        this.medicationdeveloped &&
-        !this.medicationusage &&
-        this.medicationstatuscode == 1
-      ) {
-        this.medicationstatus = "Entwickelt!";
-        this.medicationstatuscode = 2;
-        this.medicationbuttonloading = false;
-      }
-    },
-    pauseSimulation(pause) {
-      axios.get(`/api/simulation/${this.backendUuid}/pause`, {
-        params: {
-          pause: pause,
-        },
-      });
-      this.simulationPaused = pause;
-    },
-    endSimulation() {
-      location.reload();
-      axios.delete(`/api/simulation/${this.backendUuid}/`);
-      this.pauseSimulation(false);
-    },
-    refreshObedience() {
-      axios
-        .get(`/api/simulation/${this.backendUuid}/country/obedience`)
-        .then((response) => {
-          if (this.obedience > 0.7 && response.data > 0.7) {
-            this.obedienceColor = "positive";
-          }
-          if (this.obedience < 0.7 && response.data > 0.7) {
-            notifySuccess(
-              "Der Gehorsam deiner Bevölkerung ist wieder über 70% !"
-            );
-          }
-          if (this.obedience > 0.3 && response.data < 0.3) {
-            this.obedienceColor = "negative";
-            notifyError("Achtung der Gehorsam ist nun unter 30% !");
-          } else if (this.obedience > 0.7 && response.data < 0.7) {
-            this.obedienceColor = "warning";
-          }
-          this.obedience = response.data;
-        });
-    },
-    removeElement(index) {
-      this.measureList.splice(index, 1);
-    },
-    removeOneDayOnEveryMeasure() {
-      this.measureList.forEach((element, index) => {
-        if (element.daysLeft > 1) {
-          element.daysLeft--;
-        } else if (element.daysLeft == 1) {
-          this.removeElement(index);
-        }
-      });
-    },
-    deleteOldMeasures() {
-      this.measureList;
-    },
-  },
-  components: {
-    deathChart,
-    MeasureElement,
-  },
-};
-</script>
+</style>

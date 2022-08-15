@@ -1,5 +1,5 @@
 {
-  "name": "Epidemie Simulation",
+  "name": "epidemie-simulation",
   "version": "0.0.1",
   "description": "Epidemie Simulation",
   "productName": "Epidemie Simulation",
@@ -43,5 +43,8 @@
     "node": ">= 12.22.1",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
+  },
+    "prettier": {
+    "singleQuote": true
   }
 }

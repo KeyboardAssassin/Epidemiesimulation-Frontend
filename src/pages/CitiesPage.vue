@@ -2,12 +2,14 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'IndexPage'
+  name: 'CitiesPage'
 })
 </script>
 
 <template>
-  <q-page class="flex flex-center"> </q-page>
+  <div>
+    
+  </div>
 </template>
 
 <style scoped>

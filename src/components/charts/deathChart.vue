@@ -1,31 +1,25 @@
-<template>
-  <apexchart
-    type="area"
-    height="350"
-    :options="chartOptions"
-    :series="series"
-  ></apexchart>
-</template>
-
 <script>
-export default {
-  name: "deathChart",
-  data() {
-    return {
-      series: [
+import { ref, defineComponent } from 'vue' ;
+
+export default defineComponent({
+  name: 'deathChart',
+  
+  setup() {
+    const series = ref([
         {
-          name: "Deaths",
+          name: 'Deaths',
           data: [],
         },
         {
-          name: "Cases",
+          name: 'Cases',
           data: [],
         },
-      ],
-      chartOptions: {
+    ]);
+
+    const chartOptions = ref({
         chart: {
           height: 350,
-          type: "area",
+          type: 'area',
           zoom: {
             enabled: true,
           },
@@ -34,48 +28,65 @@ export default {
           enabled: false,
         },
         stroke: {
-          curve: "smooth",
+          curve: 'smooth',
         },
         title: {
-          text: "Fallzahlen",
-          align: "left",
+          text: 'Fallzahlen',
+          align: 'left',
         },
         grid: {
           row: {
-            colors: ["#f3f3f3", "transparent"], // takes an array which will be repeated on columns
+            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
             opacity: 0.5,
           },
         },
         xaxis: {
           categories: [],
         },
-      },
-    };
-  },
-  methods: {
-    appendDeathList(amountOfNewDeaths, amountOfNewCases) {
-      let newDeathData = Array.from(this.series[0].data);
+    });
+
+    function appendDeathList(amountOfNewDeaths, amountOfNewCases) {
+      let newDeathData = Array.from(series.value[0].data);
       newDeathData.push(amountOfNewDeaths);
 
-      let newCaseData = Array.from(this.series[1].data);
+      let newCaseData = Array.from(series.value[1].data);
       newCaseData.push(amountOfNewCases);
 
-      let newAxisData = Array.from(this.chartOptions.xaxis.categories);
-      newAxisData.push("1");
+      let newAxisData = Array.from(chartOptions.value.xaxis.categories);
+      newAxisData.push('1');
 
-      this.series = [
+      series.value = [
         {
-          name: "Deaths",
+          name: 'Deaths',
           data: newDeathData,
         },
         {
-          name: "cases",
+          name: 'cases',
           data: newCaseData,
         },
       ];
 
-      this.chartOptions.xaxis.categories = newAxisData;
-    },
-  },
-};
+      chartOptions.value.xaxis.categories = newAxisData;
+    };
+
+    return {
+      series,
+      chartOptions,
+      appendDeathList,
+    };
+  }
+})
 </script>
+
+<template>
+  <apexchart
+    type='area'
+    height='350'
+    :options='chartOptions'
+    :series='series'
+  ></apexchart>
+</template>
+
+<style scoped>
+
+</style>

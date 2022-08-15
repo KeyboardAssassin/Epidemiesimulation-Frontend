@@ -1,16 +1,23 @@
+/*
+  Vue's best practice and convention is to use “PascalCase” for the pages,
+  and include the word page in it. Same for layouts.
+
+  But it's also valid to use “kebab-case” as in template attributes.
+*/
+
 const routes = [
   {
     path: "/",
-    component: () => import("layouts/MainLayout.vue"),
+    component: () => import("layouts/main/MainLayout.vue"),
     children: [
       { path: "", component: () => import("pages/IndexPage.vue") },
       {
         path: "states",
-        component: () => import("pages/IndexPage.vue"),
+        component: () => import("pages/StatesPage.vue"),
       },
       {
         path: "cities",
-        component: () => import("pages/IndexPage.vue"),
+        component: () => import("pages/CitiesPage.vue"),
       },
     ],
   },
@@ -19,7 +26,7 @@ const routes = [
   // but you can also remove it
   {
     path: "/:catchAll(.*)*",
-    component: () => import("pages/ErrorNotFound.vue"),
+    component: () => import("pages/ErrorNotFoundPage.vue"),
   },
 ];
 

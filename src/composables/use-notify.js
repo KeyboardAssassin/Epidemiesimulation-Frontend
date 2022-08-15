@@ -1,6 +1,6 @@
 import { Notify } from "quasar";
 
-export default function useNotify() {
+export function useNotify() {
   const notifySuccess = (message) => {
     Notify.create({
       type: "positive",
