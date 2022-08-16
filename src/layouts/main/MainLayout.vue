@@ -3,7 +3,7 @@ import {
   defineAsyncComponent,
   defineComponent,
 } from "vue";
-import MeasureElement from "components/MeasureElement.vue";
+import MeasureElement from 'components/MeasureElement.vue';
 import { useMain } from './composables/main';
 
 let DeathChart = defineAsyncComponent(() =>
@@ -347,12 +347,34 @@ export default defineComponent({
             </div>
             <div class="countrypanel">
               <div class="panelsection">
-                <div class="panelelement">Inzidenz: {{ countryIncidence }}</div>
-                <div class="panelelement">R-Wert: {{ countryRValue }}</div>
                 <div class="panelelement">
+                  <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">  
+                    <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                      Die <strong>Inzidenz</strong> stellt die durschnittlichen Neuinfektionen der letzten 7 Tage dar
+                    </q-tooltip>  
+                  </q-btn>
+                  Inzidenz: {{ countryIncidence }}</div>
+
+                <div class="panelelement"><q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
+                      <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                      Der <strong>R-Wert</strong> gibt an, wie viele Menschen eine infizierte Person<br> in den vergangenen 8 Tagen im Mittel ansteckt hat
+                    </q-tooltip>  
+                </q-btn>  R-Wert: {{ countryRValue }}</div>
+
+                <div class="panelelement"><q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px"> 
+                                        <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                      Die <strong>Neuinfektionen</strong> geben an, wie viel Menschen an dem aktuellen Tag infiziert wurden
+                    </q-tooltip>  
+                  </q-btn>
                   Neuinfektionenen: {{ countryNewInfections }}
                 </div>
-                <div class="panelelement">
+
+                <div class="panelelement"><q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
+                    <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                      Die <strong>Todesfälle</strong> geben an, wie viel Menschen an dem aktuellen Tag verstorben sind
+                    </q-tooltip>  
+
+                </q-btn>  
                   Todesfälle: {{ countryDeadCases }}
                 </div>
               </div>
