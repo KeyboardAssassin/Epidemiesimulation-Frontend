@@ -74,10 +74,13 @@
   background-color: grey;
   border-color: black;
   border: 2px solid;
-  margin-left: 70%;
+  margin-left: 65%;
   border-radius: 10px;
   float: left;
   width: 320px;
+  position: fixed;
+  top: 850px;
+  left: 1px;
 }
 
 .pauseBtnBox {
