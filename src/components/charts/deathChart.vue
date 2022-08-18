@@ -52,8 +52,8 @@ export default defineComponent({
       let newCaseData = Array.from(series.value[1].data);
       newCaseData.push(amountOfNewCases);
 
-      let newAxisData = Array.from(chartOptions.value.xaxis.categories);
-      newAxisData.push('1');
+      // let newAxisData = Array.from(chartOptions.value.xaxis.categories);
+      // newAxisData.push('1');
 
       series.value = [
         {
@@ -66,7 +66,7 @@ export default defineComponent({
         },
       ];
 
-      chartOptions.value.xaxis.categories = newAxisData;
+      //chartOptions.value.xaxis.categories = newAxisData;
     };
 
     return {

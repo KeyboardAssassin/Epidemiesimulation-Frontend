@@ -100,14 +100,14 @@ export const useMain = () => {
   const restrictionsInputName = ref('');
   const medicationButton = 'medication-button';
   const deathChartRef = ref(null);
-  const model = ref(2);
+  const model = ref(4);
   const priceModel = ref(4);
   const rightDrawerOpen = ref(false);
   const newMeasure = ref("");
   const submitting = ref(false);
   const simulationstarted = ref(false);
   const simulationEnded = ref(false);
-  const interval = ref(1500);
+  const interval = ref(3000);
   const day = ref(0);
   const componentKey = ref(0);
   const status = ref("states");
@@ -176,7 +176,6 @@ export const useMain = () => {
   };
 
   function getAllStates() {
-    intervalObj.value = window.setInterval(() => {
       if (!simulationPaused.value) {
         if (status.value == "states") {
           axios
@@ -211,7 +210,7 @@ export const useMain = () => {
         removeOneDayOnEveryMeasure();
         forceRerender();
       }
-    }, interval.value);
+      setTimeout(getAllStates, interval.value);
   };
 
   function addMeasure(measureInput, regionInput, targetInput, daysLeftInput) {
@@ -262,7 +261,8 @@ export const useMain = () => {
   };
 
   function changeSpeed(speed) {
-    let newInterval = (11 - speed) * 400;
+    let newInterval = (12 - speed) * 500;
+    console.log(newInterval);
     interval.value = newInterval;
     axios.get(`/api/simulation/${backendUuid.value}/speed`, {
       params: {
@@ -319,7 +319,7 @@ export const useMain = () => {
         .put(
           `/api/simulation/${backendUuid.value}/measure/vaccinationdevelopment`
         )
-        .then((res) => {
+        .then(() => {
           vaccinationstatus.value = "In Entwicklung!";
           vaccinationstatuscode.value = 1;
           vaccinationbuttonloading.value = true;
@@ -339,7 +339,7 @@ export const useMain = () => {
         .put(
           `/api/simulation/${backendUuid.value}/measure/medicationdevelopment`
         )
-        .then((res) => {
+        .then(() => {
           medicationstatus.value = "In Entwicklung!";
           medicationstatuscode.value = 1;
           medicationbuttonloading.value = true;
@@ -357,7 +357,7 @@ export const useMain = () => {
     vaccinationusage.value = true;
     axios
       .put(`/api/simulation/${backendUuid.value}/measure/vaccination`)
-      .then((res) => {
+      .then(() => {
         vaccinationstatus.value = "Impfkampagne läuft!";
         vaccinationbuttonloading.value = true;
       });
@@ -366,8 +366,8 @@ export const useMain = () => {
   function startMedicationUsage() {
     medicationusage.value = true;
     axios
-      .put(`/api/simulation/${backendUuid.value}/medication`)
-      .then((res) => {
+      .put(`/api/simulation/${backendUuid.value}/measure/medication`)
+      .then(() => {
         medicationstatus.value = "Medizin wird eingesetzt!";
         medicationbuttonloading.value = true;
       });
