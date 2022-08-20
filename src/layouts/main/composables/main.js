@@ -125,6 +125,8 @@ export const useMain = () => {
   const medicationdeveloped = ref(false);
   const vaccinationusage = ref(false);
   const medicationusage = ref(false);
+  const virusName = ref("Alpha");
+  const virusLethality = ref("0.9");
   const amountOfDaysContactRestrictions = ref(0);
   const backendUuid = ref("");
   const restrictionsInputState = ref("");
@@ -165,14 +167,14 @@ export const useMain = () => {
           positiveAlert.value = true;
           submitting.value = true;
           backendUuid.value = res.data;
+
+          getAllStates(interval.value);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         negativeAlert.value = true;
         return;
       });
-
-    getAllStates(interval.value);
   };
 
   function getAllStates() {
@@ -289,6 +291,8 @@ export const useMain = () => {
         vaccinationdeveloped.value = res.data.vaccinationDeveloped;
         medicationdeveloped.value = res.data.medicationDeveloped;
         simulationEnded.value = res.data.simulationEnded;
+        virusName.value = res.data.currentVirusName;
+        virusLethality.value = res.data.currentVirusLethality;
         countryRValue.value = res.data.rvalue;
 
         deathChartRef.value.appendDeathList(
@@ -518,6 +522,8 @@ export const useMain = () => {
     medicationdeveloped,
     vaccinationusage,
     medicationusage,
+    virusName,
+    virusLethality,
     amountOfDaysContactRestrictions,
     backendUuid,
     restrictionsInputState,

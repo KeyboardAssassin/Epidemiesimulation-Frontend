@@ -70,17 +70,34 @@
   padding: 1.5%;
 }
 
-.pausemenu {
+.bottommenu {
+  width: 65%;
+  position: fixed;
+  top: 745px;
+  left: 1px;
+  margin-right: 17%;
+  margin-left: 18.5%;
+}
+
+.bottommenuright{
   background-color: grey;
   border-color: black;
   border: 2px solid;
-  margin-left: 65%;
   border-radius: 10px;
+  float: right;
+  width: 26%;
+  margin-top: 8%;
+}
+
+.bottommenuleft{
+  margin-left: 1%;
+  background-color: grey;
+  border-color: black;
+  border: 2px solid;
+  border-radius: 10px;
+  height: 150px;
+  width: 150px;
   float: left;
-  width: 320px;
-  position: fixed;
-  top: 850px;
-  left: 1px;
 }
 
 .pauseBtnBox {
@@ -171,4 +188,14 @@
   border-radius: 10px;
   border: 1px solid;
   border-color: white;
+}
+
+.virusbox{
+  color:white;  
+}
+
+.viruselement{
+  color:white;
+  text-align: center;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }

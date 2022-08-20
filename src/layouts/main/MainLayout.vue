@@ -331,22 +331,38 @@ export default defineComponent({
       <div class="map">
         <img v-if="status == 'states'" alt="Map of Germany" src="../../assets/states.png" />
         <img v-if="status == 'cities'" alt="Map of Germany" src="../../assets/cities.png" />
-        <div class="pausemenu">
-          <div class="pauseBtnBox">
-            <q-badge color="primary">Pause</q-badge>
-            <q-btn round color="negative" icon="pan_tool" @click="pauseSimulation(true)"
-              :disable="!simulationstarted && false" />
+        <div class="bottommenu">
+          <div class="bottommenuleft">
+            <div class="virusbox">
+              <div class="viruselement" style="font-size: 20px;">
+                Virus: {{ virusName }}
+              </div>
+              <div class="viruselement" style="font-size: 18px;">
+                Letalität: {{ virusLethality }} %
+              </div>
+              <div class="viruselement">
+                <img src="../../../public/icons8-coronavirus-100.png" style="width: 80px; height: 80px">
+              </div>
+            </div>
+          </div>
+          <div class="bottommenuright">
+            <div class="pauseBtnBox">
+              <q-badge color="primary">Pause</q-badge>
+              <q-btn round color="negative" icon="pan_tool" @click="pauseSimulation(true)"
+                :disable="!simulationstarted && false" />
+            </div>
+
+            <div class="pauseBtnBox">
+              <q-badge color="primary">Weiter</q-badge>
+              <q-btn round color="positive" icon="done" @click="pauseSimulation(false)" :disable="!simulationstarted" />
+            </div>
+
+            <div class="pauseBtnBox">
+              <q-badge color="primary">Beenden</q-badge>
+              <q-btn round color="black" icon="logout" @click="endSimulation()" :disable="!simulationstarted" />
+            </div>
           </div>
 
-          <div class="pauseBtnBox">
-            <q-badge color="primary">Weiter</q-badge>
-            <q-btn round color="positive" icon="done" @click="pauseSimulation(false)" :disable="!simulationstarted" />
-          </div>
-
-          <div class="pauseBtnBox">
-            <q-badge color="primary">Beenden</q-badge>
-            <q-btn round color="black" icon="logout" @click="endSimulation()" :disable="!simulationstarted" />
-          </div>
         </div>
       </div>
     </q-page-container>
