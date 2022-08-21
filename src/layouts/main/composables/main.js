@@ -143,6 +143,7 @@ export const useMain = () => {
   const medicationusage = ref(false);
   const virusName = ref("Alpha");
   const virusLethality = ref("0.9");
+  const backendStopped = ref(false);
   const amountOfDaysContactRestrictions = ref(0);
   const backendUuid = ref("");
   const restrictionsInputState = ref("");
@@ -163,7 +164,6 @@ export const useMain = () => {
   const alertMedicationDevelopment = ref(false);
   const alertVaccinationDevelopment = ref(false);
   const address = ref("");
-  const intervalObj = ref(null)
 
   // Computed and getters
   const fnMarkerLabel = (val) => `${10 * val}%`;
@@ -177,12 +177,12 @@ export const useMain = () => {
   function startSimulation() {
     axios
       .post("/api/simulation")
-      .then((res) => {
-        if ((res.status = 200)) {
+      .then((response) => {
+        if ((response.status = 200)) {
           simulationstarted.value = true;
           positiveAlert.value = true;
           submitting.value = true;
-          backendUuid.value = res.data;
+          backendUuid.value = response.data;
 
           getAllStates(interval.value);
         }
@@ -194,17 +194,20 @@ export const useMain = () => {
   };
 
   function getAllStates() {
-      if (!simulationPaused.value) {
+      if (!simulationPaused.value  && !backendStopped.value) {
         if (status.value == "states") {
           axios
             .get(
               `/api/simulation/${backendUuid.value}/country/incidenceofeverystate`
             )
-            .then((response) => (rows.value = response.data))
-            .catch(function (error) {
-              console.log(error);
-              clearInterval(intervalObj.value);
-              intervalObj.value = null;
+            .then((response) => {
+              if ((response.status != 200)) {
+                return;
+              }
+              rows.value = response.data;
+            })
+            .catch(() => {
+              backendStopped.value = true;
               return;
             });
         } else if (status.value == "cities") {
@@ -212,11 +215,15 @@ export const useMain = () => {
             .get(
               `/api/simulation/${backendUuid.value}/country/incidenceofeverycity`
             )
-            .then((response) => (rows.value = response.data))
+            .then((response) => {
+              if ((response.status != 200)) {
+                return;
+              }
+              rows.value = response.data;
+            })
             .catch(function (error) {
+              backendStopped.value = true;
               console.log(error);
-              clearInterval(intervalObj.value);
-              intervalObj.value = null;
               return;
             });
         }
@@ -227,8 +234,11 @@ export const useMain = () => {
         refreshObedience();
         removeOneDayOnEveryMeasure();
         forceRerender();
+
+        if (!backendStopped.value && !simulationPaused.value) {
+          setTimeout(getAllStates, interval.value);
+        }
       }
-      setTimeout(getAllStates, interval.value);
   };
 
   function addMeasure(measureInput, regionInput, targetInput, daysLeftInput) {
@@ -276,7 +286,12 @@ export const useMain = () => {
   function refreshDay() {
     axios
       .get(`/api/simulation/${backendUuid.value}/currentday`)
-      .then((response) => (day.value = response.data));
+      .then((response) => {
+        if ((response.status != 200)) {
+          return;
+        }
+        day.value = response.data
+      });
   }
 
   function forceRerender() {
@@ -305,16 +320,19 @@ export const useMain = () => {
   function updateCountryInfoBox() {
     axios
       .get(`/api/simulation/${backendUuid.value}/country/summary`)
-      .then((res) => {
-        countryIncidence.value = res.data.incidence;
-        countryNewInfections.value = res.data.newInfections;
-        countryDeadCases.value = res.data.newDeathCases;
-        vaccinationdeveloped.value = res.data.vaccinationDeveloped;
-        medicationdeveloped.value = res.data.medicationDeveloped;
-        simulationEnded.value = res.data.simulationEnded;
-        virusName.value = res.data.currentVirusName;
-        virusLethality.value = res.data.currentVirusLethality;
-        countryRValue.value = res.data.rvalue;
+      .then((response) => {
+        if ((response.status != 200)) {
+          return;
+        }
+        countryIncidence.value = response.data.incidence;
+        countryNewInfections.value = response.data.newInfections;
+        countryDeadCases.value = response.data.newDeathCases;
+        vaccinationdeveloped.value = response.data.vaccinationDeveloped;
+        medicationdeveloped.value = response.data.medicationDeveloped;
+        simulationEnded.value = response.data.simulationEnded;
+        virusName.value = response.data.currentVirusName;
+        virusLethality.value = response.data.currentVirusLethality;
+        countryRValue.value = response.data.rvalue;
 
         deathChartRef.value.appendDeathList(
           countryDeadCases.value,
@@ -323,17 +341,17 @@ export const useMain = () => {
       })
       .catch(function (error) {
         console.log(error);
-        clearInterval(intervalObj.value);
-        intervalObj.value = null;
         return;
       });
   };
 
+  function updateStateAndCityList(){
+    
+  }
+
   function checkIfSimulationEnded(){
     if (simulationEnded.value == true) {
-      intervalObj.value = null;
       simulationPaused.value = true;
-      console.log("ENDE");
     }
   };
 
@@ -344,7 +362,10 @@ export const useMain = () => {
         .put(
           `/api/simulation/${backendUuid.value}/measure/vaccinationdevelopment`
         )
-        .then(() => {
+        .then((response) => {
+          if (response.status != 200) {
+            return;
+          }
           vaccinationstatus.value = "In Entwicklung!";
           vaccinationstatuscode.value = 1;
           vaccinationbuttonloading.value = true;
@@ -364,7 +385,10 @@ export const useMain = () => {
         .put(
           `/api/simulation/${backendUuid.value}/measure/medicationdevelopment`
         )
-        .then(() => {
+        .then((response) => {
+          if (response.status != 200) {
+            return;
+          }
           medicationstatus.value = "In Entwicklung!";
           medicationstatuscode.value = 1;
           medicationbuttonloading.value = true;
@@ -382,7 +406,10 @@ export const useMain = () => {
     vaccinationusage.value = true;
     axios
       .put(`/api/simulation/${backendUuid.value}/measure/vaccination`)
-      .then(() => {
+      .then((response) => {
+        if (response.status != 200) {
+          return;
+        }
         vaccinationstatus.value = "Impfkampagne läuft!";
         vaccinationbuttonloading.value = true;
       });
@@ -392,7 +419,10 @@ export const useMain = () => {
     medicationusage.value = true;
     axios
       .put(`/api/simulation/${backendUuid.value}/measure/medication`)
-      .then(() => {
+      .then((response) => {
+        if ((response.status != 200)) {
+          return;
+        }
         medicationstatus.value = "Medizin wird eingesetzt!";
         medicationbuttonloading.value = true;
       });
@@ -458,6 +488,9 @@ export const useMain = () => {
       },
     });
     simulationPaused.value = pause;
+    if (!pause) {
+      getAllStates();
+    }
   };
 
   function endSimulation() {
@@ -470,6 +503,10 @@ export const useMain = () => {
     axios
       .get(`/api/simulation/${backendUuid.value}/country/obedience`)
       .then((response) => {
+        if ((response.status != 200)) {
+          return;
+        }
+        
         if (obedience.value > 0.7 && response.data > 0.7) {
           obedienceColor.value = "positive";
         }
@@ -530,6 +567,7 @@ export const useMain = () => {
     medicationusage,
     virusName,
     virusLethality,
+    backendStopped,
     amountOfDaysContactRestrictions,
     backendUuid,
     restrictionsInputState,
