@@ -23,8 +23,24 @@ const columns = [
 
 let map = new Map();
 
-map.set("bayern", ["ingolstadt", "Nürnberg", "München"]);
-map.set("Thüringen", ["Erfurt", "Jena"]);
+map.set("bayern", ["ingolstadt", "nürnberg", "münchen"]);
+map.set("thüringen", ["erfurt", "jena"]);
+map.set("hessen", ["frankfurt", "wiesbaden"]);
+map.set("baden-württemberg", ["stuttgart", "mannheim"]);
+map.set("sachsen", ["dresden", "leipzig"]);
+map.set("niedersachsen", ["hannover", "braunschweig"]);
+map.set("rheinland-pfalz", ["mainz", "ludwigshafen"]);
+map.set("schleswig-holstein", ["kiel", "lübeck"]);
+map.set("saarland", ["saarbrücken", "neunkirchen"]);
+map.set("berlin", ["berlin"]);
+map.set("brandenburg", ["potsdam", "cottbus"]);
+map.set("bremen", ["bremen"]);
+map.set("nordrhein-westfahlen", ["düsseldorf", "köln"]);
+map.set("hamburg", ["hamburg"]);
+map.set("mecklenburg-vorpommern", ["schwerin", "rostock"]);
+map.set("sachsenanhalt", ["halle", "magdeburg"]);
+
+
 
 let rows = ref([
   {
@@ -220,28 +236,33 @@ export const useMain = () => {
       measureList.value.forEach((element, index) => {
         if (element.measure == measureInput) {
           measureList.value.splice(index, 1);
+          console.log(element.measure + " ist gleich " + measureInput);
         }
+        console.log(element.measure + " ist nicht gleich " + measureInput);
       });
     }
 
     if (regionInput == "state") {
-      console.log(map);
       let citiesOfState = map.get(targetInput);
-      console.log(citiesOfState);
       measureList.value.forEach((element, index) => {
         if (element.region == "state" && element.target == targetInput) {
           measureList.value.splice(index, 1);
         }
         if (
           element.region == "city" &&
-          citiesOfState.includes(element.target)
+          citiesOfState.includes(element.target) // CHECK
         ) {
           measureList.value.splice(index, 1);
         }
       });
+    }
 
-      if (regionInput == "city") {
-      }
+    if (regionInput == "city") {
+      measureList.value.forEach((element, index) => {
+        if (element.region == "city" && element.target == targetInput) {
+          measureList.value.splice(index, 1);
+        }
+      });
     }
 
     measureList.value.push({
@@ -379,40 +400,25 @@ export const useMain = () => {
 
   function startContactRestrictions(regionInput) {
     if (regionInput == "country") {
-      axios.get(
-        `/api/simulation/${backendUuid.value}/measure/contactrestrictions`,
-        {
-          params: {
-            type: regionInput,
-            name: "deutschland",
-            amountofdays: restrictionsInput.value,
-          },
-        }
-      );
-      addMeasure(
-        "Kontaktbeschräkungen",
-        regionInput,
-        "Deutschland",
-        restrictionsInput.value
-      );
-    } else {
-      axios.get(
-        `/api/simulation/${backendUuid.value}/measure/contactrestrictions`,
-        {
-          params: {
-            type: regionInput,
-            name: restrictionsInputName.value,
-            amountofdays: restrictionsInput.value,
-          },
-        }
-      );
-      addMeasure(
-        "Kontaktbeschärkungen",
-        regionInput,
-        restrictionsInputName.value,
-        restrictionsInput.value
-      );
+      restrictionsInputName.value = "Deutschland";
     }
+
+    axios.get(
+      `/api/simulation/${backendUuid.value}/measure/contactrestrictions`,
+      {
+        params: {
+          type: regionInput,
+          name: restrictionsInputName.value,
+          amountofdays: restrictionsInput.value,
+        },
+      }
+    );
+    addMeasure(
+      "Kontaktbeschränkungen",
+      regionInput,
+      restrictionsInputName.value,
+      restrictionsInput.value
+    );
   };
 
   function startSocialDistancingAlert() {
