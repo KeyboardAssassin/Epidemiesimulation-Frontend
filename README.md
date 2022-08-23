@@ -1,10 +1,10 @@
 
-![Epidemiesimulation Frontned](https://i.ibb.co/kXvfvBm/Epidemiesimulation-Frontend.png)
+![Epidemiesimulation Frontned](https://i.ibb.co/8YVf770/Frontend.png)
 
 ## Konzeption und Implementierung einer Epidemiesimulation 
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger) ![enter image description here](https://img.shields.io/github/last-commit/keyboardassassin/Epidemiesimulation)
+![Frontend Banner](https://img.shields.io/github/last-commit/keyboardassassin/Epidemiesimulation)
 
-In diesem Repository wird passend zur [Backend-Komponente](https://github.com/KeyboardAssassin/Epidemiesimulation) ein Frontend  für diese Simulation erschaffen.
+A frontend for this simulation is created in this repository to match the [backend component](https://github.com/KeyboardAssassin/Epidemiesimulation).
 
 ## Key Features
 
