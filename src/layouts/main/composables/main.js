@@ -164,6 +164,7 @@ export const useMain = () => {
   const alertMedicationDevelopment = ref(false);
   const alertVaccinationDevelopment = ref(false);
   const address = ref("");
+  const errorCode = ref("");
 
   // Computed and getters
   const fnMarkerLabel = (val) => `${10 * val}%`;
@@ -187,8 +188,9 @@ export const useMain = () => {
           getAllStates(interval.value);
         }
       })
-      .catch(() => {
+      .catch((error) => {
         negativeAlert.value = true;
+        errorCode.value = error.response.status;
         return;
       });
   };
@@ -617,6 +619,7 @@ export const useMain = () => {
     startSimulation,
     getAllStates,
     toggleRightDrawer,
+    errorCode
   };
 }
 

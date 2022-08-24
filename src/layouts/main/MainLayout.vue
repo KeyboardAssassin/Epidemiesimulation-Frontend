@@ -37,6 +37,12 @@ export default defineComponent({
 
           <div class="obedienceprogress">
             Gehorsam der Bevölkerung:
+            <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
+              <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                Der <strong>Gehorsam</strong> repräsentiert, wie sehr deine Bevölkerung auf Maßnahmen hört.<br>
+                Je tiefer dieser fällt, desto weniger werden diese eingehalten.
+              </q-tooltip>
+            </q-btn>
             <q-linear-progress stripe rounded size="14px" :value="obedience" :color="obedienceColor" class="q-mt-sm" />
           </div>
           <div class="date">Tag: {{ day }}</div>
@@ -79,11 +85,14 @@ export default defineComponent({
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <span>Simulation wurde nicht gestartet!</span>
-          Vermutlich läuft die Serveranwendung im Hintergrund nicht.
+          <center>Simulation wurde nicht gestartet!</center>
+          <span>Vermutlich läuft die Serveranwendung im Hintergrund nicht.</span>
         </q-card-section>
 
         <q-card-actions align="right">
+          <div class="errorcode">
+            Errorcode: {{ errorCode }}
+          </div>
           <q-btn flat label="OK" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -258,7 +267,7 @@ export default defineComponent({
                 <div class="panelelement">
                   <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
                     <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                      Die <strong>Inzidenz</strong> stellt die durschnittlichen Neuinfektionen der letzten 7 Tage dar
+                      Die <strong>Inzidenz</strong> stellt die durschnittlichen Neuinfektionen der letzten 7 Tage dar.
                     </q-tooltip>
                   </q-btn>
                   Inzidenz: {{ countryIncidence }}
@@ -268,7 +277,7 @@ export default defineComponent({
                   <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
                     <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
                       Der <strong>R-Wert</strong> gibt an, wie viele Menschen eine infizierte Person<br> in den
-                      vergangenen 8 Tagen im Mittel ansteckt hat
+                      vergangenen 8 Tagen im Mittel ansteckt hat.
                     </q-tooltip>
                   </q-btn> R-Wert: {{ countryRValue }}
                 </div>
@@ -276,21 +285,22 @@ export default defineComponent({
                 <div class="panelelement">
                   <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
                     <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                      Die <strong>Neuinfektionen</strong> geben an, wie viel Menschen an dem aktuellen Tag infiziert
-                      wurden
+                      Die <strong>Neuinfektionen</strong> geben an, wie viel Menschen<br>
+                      an dem aktuellen Tag infiziert wurden.
                     </q-tooltip>
                   </q-btn>
-                  Neuinfektionenen: {{ countryNewInfections }}
+                  Neuinfektionen: {{ countryNewInfections }}
                 </div>
 
                 <div class="panelelement">
                   <q-btn round color="secondary" glossy text-color="black" icon="question_mark" size="8px">
                     <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                      Die <strong>Todesfälle</strong> geben an, wie viel Menschen an dem aktuellen Tag verstorben sind
+                      Die <strong>Todesfälle</strong> geben an, wie viel Menschen<br>
+                      an dem aktuellen Tag verstorben sind.
                     </q-tooltip>
 
                   </q-btn>
-                  Todesfälle: {{ countryDeadCases }}
+                  Neue Todesfälle: {{ countryDeadCases }}
                 </div>
               </div>
               <div class="panelsection">
