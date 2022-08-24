@@ -121,7 +121,7 @@ export const useMain = () => {
   const rightDrawerOpen = ref(false);
   const newMeasure = ref("");
   const submitting = ref(false);
-  const simulationstarted = ref(false);
+  const simulationStarted = ref(false);
   const simulationEnded = ref(false);
   const interval = ref(3000);
   const day = ref(0);
@@ -131,16 +131,16 @@ export const useMain = () => {
   const countryRValue = ref(0);
   const countryNewInfections = ref(0);
   const countryDeadCases = ref(0);
-  const vaccinationstatus = ref("Nicht entwickelt");
-  const medicationstatus = ref("Nicht entwickelt");
-  const vaccinationstatuscode = ref(0);
-  const medicationstatuscode = ref(0);
-  const vaccinationbuttonloading = ref(false);
-  const medicationbuttonloading = ref(false);
-  const vaccinationdeveloped = ref(false);
-  const medicationdeveloped = ref(false);
-  const vaccinationusage = ref(false);
-  const medicationusage = ref(false);
+  const vaccinationStatus = ref("Nicht entwickelt");
+  const medicationStatus = ref("Nicht entwickelt");
+  const vaccinationStatusCode = ref(0);
+  const medicationStatusCode = ref(0);
+  const vaccinationButtonLoading = ref(false);
+  const medicationButtonLoading = ref(false);
+  const vaccinationDeveloped = ref(false);
+  const medicationDeveloped = ref(false);
+  const vaccinationUsage = ref(false);
+  const medicationUsage = ref(false);
   const virusName = ref("Alpha");
   const virusLethality = ref("0.9");
   const backendStopped = ref(false);
@@ -157,6 +157,7 @@ export const useMain = () => {
   const negativeAlert = ref(false);
   const positiveAlert = ref(false);
   const simulationPaused = ref(false);
+  const socialDistancingActivated = ref(false);
   const alertContactRestrictionsCountry = ref(false);
   const alertContactRestrictionsState = ref(false);
   const alertContactRestrictionsCity = ref(false);
@@ -165,6 +166,7 @@ export const useMain = () => {
   const alertVaccinationDevelopment = ref(false);
   const address = ref("");
   const errorCode = ref("");
+  const currentVersion = ref("2022.8.3");
 
   // Computed and getters
   const fnMarkerLabel = (val) => `${10 * val}%`;
@@ -180,7 +182,7 @@ export const useMain = () => {
       .post("/api/simulation")
       .then((response) => {
         if ((response.status = 200)) {
-          simulationstarted.value = true;
+          simulationStarted.value = true;
           positiveAlert.value = true;
           submitting.value = true;
           backendUuid.value = response.data;
@@ -248,9 +250,7 @@ export const useMain = () => {
       measureList.value.forEach((element, index) => {
         if (element.measure == measureInput) {
           measureList.value.splice(index, 1);
-          console.log(element.measure + " ist gleich " + measureInput);
         }
-        console.log(element.measure + " ist nicht gleich " + measureInput);
       });
     }
 
@@ -329,8 +329,8 @@ export const useMain = () => {
         countryIncidence.value = response.data.incidence;
         countryNewInfections.value = response.data.newInfections;
         countryDeadCases.value = response.data.newDeathCases;
-        vaccinationdeveloped.value = response.data.vaccinationDeveloped;
-        medicationdeveloped.value = response.data.medicationDeveloped;
+        vaccinationDeveloped.value = response.data.vaccinationDeveloped;
+        medicationDeveloped.value = response.data.medicationDeveloped;
         simulationEnded.value = response.data.simulationEnded;
         virusName.value = response.data.currentVirusName;
         virusLethality.value = response.data.currentVirusLethality;
@@ -347,10 +347,6 @@ export const useMain = () => {
       });
   };
 
-  function updateStateAndCityList(){
-    
-  }
-
   function checkIfSimulationEnded(){
     if (simulationEnded.value == true) {
       simulationPaused.value = true;
@@ -358,7 +354,7 @@ export const useMain = () => {
   };
 
   function activateVaccinationButton() {
-    if (vaccinationstatuscode.value == 0) {
+    if (vaccinationStatusCode.value == 0) {
       alertVaccinationDevelopment.value = true;
       axios
         .put(
@@ -368,20 +364,20 @@ export const useMain = () => {
           if (response.status != 200) {
             return;
           }
-          vaccinationstatus.value = "In Entwicklung!";
-          vaccinationstatuscode.value = 1;
-          vaccinationbuttonloading.value = true;
+          vaccinationStatus.value = "In Entwicklung!";
+          vaccinationStatusCode.value = 1;
+          vaccinationButtonLoading.value = true;
         });
     }
 
-    if (vaccinationstatuscode.value == 2) {
+    if (vaccinationStatusCode.value == 2) {
       startVaccinationUsage();
-      vaccinationstatuscode.value = 3;
+      vaccinationStatusCode.value = 3;
     }
   };
 
   function activateMedicationButton() {
-    if (medicationstatuscode.value == 0) {
+    if (medicationStatusCode.value == 0) {
       alertMedicationDevelopment.value = true;
       axios
         .put(
@@ -391,42 +387,42 @@ export const useMain = () => {
           if (response.status != 200) {
             return;
           }
-          medicationstatus.value = "In Entwicklung!";
-          medicationstatuscode.value = 1;
-          medicationbuttonloading.value = true;
+          medicationStatus.value = "In Entwicklung!";
+          medicationStatusCode.value = 1;
+          medicationButtonLoading.value = true;
         });
     };
 
-    if (medicationstatuscode.value == 2) {
+    if (medicationStatusCode.value == 2) {
       startMedicationUsage();
-      medicationstatuscode.value = 3;
-      medicationstatus.value = "Medizin wird eingesetzt!";
+      medicationStatusCode.value = 3;
+      medicationStatus.value = "Medizin wird eingesetzt!";
     }
   };
 
   function startVaccinationUsage() {
-    vaccinationusage.value = true;
+    vaccinationUsage.value = true;
     axios
       .put(`/api/simulation/${backendUuid.value}/measure/vaccination`)
       .then((response) => {
         if (response.status != 200) {
           return;
         }
-        vaccinationstatus.value = "Impfkampagne läuft!";
-        vaccinationbuttonloading.value = true;
+        vaccinationStatus.value = "Impfkampagne läuft!";
+        vaccinationButtonLoading.value = true;
       });
   };
 
   function startMedicationUsage() {
-    medicationusage.value = true;
+    medicationUsage.value = true;
     axios
       .put(`/api/simulation/${backendUuid.value}/measure/medication`)
       .then((response) => {
         if ((response.status != 200)) {
           return;
         }
-        medicationstatus.value = "Medizin wird eingesetzt!";
-        medicationbuttonloading.value = true;
+        medicationStatus.value = "Medizin wird eingesetzt!";
+        medicationButtonLoading.value = true;
       });
   };
 
@@ -458,28 +454,31 @@ export const useMain = () => {
   };
   
   function startSocialDistancing() {
-    axios.put(`/api/simulation/${backendUuid.value}/measure/socialdistancing`);
+    axios.put(`/api/simulation/${backendUuid.value}/measure/socialdistancing`)
+    .then(() => {
+      socialDistancingActivated.value = true;
+    });
     addMeasure("Abstandsregeln", "country", "Deutschland", -1);
   };
 
   function checkIfMeasureIsDeveloped() {
     if (
-      vaccinationdeveloped.value &&
-      !vaccinationusage.value &&
-      vaccinationstatuscode.value == 1
+      vaccinationDeveloped.value &&
+      !vaccinationUsage.value &&
+      vaccinationStatusCode.value == 1
     ) {
-      vaccinationstatus.value = "Entwickelt!";
-      vaccinationstatuscode.value = 2;
-      vaccinationbuttonloading.value = false;
+      vaccinationStatus.value = "Entwickelt!";
+      vaccinationStatusCode.value = 2;
+      vaccinationButtonLoading.value = false;
     }
     if (
-      medicationdeveloped.value &&
-      !medicationusage.value &&
-      medicationstatuscode.value == 1
+      medicationDeveloped.value &&
+      !medicationUsage.value &&
+      medicationStatusCode.value == 1
     ) {
-      medicationstatus.value = "Entwickelt!";
-      medicationstatuscode.value = 2;
-      medicationbuttonloading.value = false;
+      medicationStatus.value = "Entwickelt!";
+      medicationStatusCode.value = 2;
+      medicationButtonLoading.value = false;
     }
   };
 
@@ -531,6 +530,11 @@ export const useMain = () => {
     measureList.value.splice(index, 1);
   };
 
+  function toggleSocialDistancing(){
+    console.log("Activated!");
+    socialDistancingActivated.value = false;
+  };
+
   function removeOneDayOnEveryMeasure() {
     measureList.value.forEach((element, index) => {
       if (element.daysLeft > 1) {
@@ -547,7 +551,7 @@ export const useMain = () => {
     negativeAlert,
     newMeasure,
     submitting,
-    simulationstarted,
+    simulationStarted,
     simulationEnded,
     interval,
     day,
@@ -557,16 +561,16 @@ export const useMain = () => {
     countryRValue,
     countryNewInfections,
     countryDeadCases,
-    vaccinationstatus,
-    medicationstatus,
-    vaccinationstatuscode,
-    medicationstatuscode,
-    vaccinationbuttonloading,
-    medicationbuttonloading,
-    vaccinationdeveloped,
-    medicationdeveloped,
-    vaccinationusage,
-    medicationusage,
+    vaccinationStatus,
+    medicationStatus,
+    vaccinationStatusCode,
+    medicationStatusCode,
+    vaccinationButtonLoading,
+    medicationButtonLoading,
+    vaccinationDeveloped,
+    medicationDeveloped,
+    vaccinationUsage,
+    medicationUsage,
     virusName,
     virusLethality,
     backendStopped,
@@ -610,16 +614,19 @@ export const useMain = () => {
     startContactRestrictions,
     startSocialDistancingAlert,
     startSocialDistancing,
+    socialDistancingActivated,
     checkIfMeasureIsDeveloped,
     pauseSimulation,
     endSimulation,
     refreshObedience,
     removeElement,
     removeOneDayOnEveryMeasure,
+    toggleSocialDistancing,
     startSimulation,
     getAllStates,
     toggleRightDrawer,
-    errorCode
+    errorCode,
+    currentVersion
   };
 }
 

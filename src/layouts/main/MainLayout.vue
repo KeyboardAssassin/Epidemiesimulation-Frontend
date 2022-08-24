@@ -29,11 +29,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <q-layout view="hHh lpR fFf">
+  <q-layout view="hHh lpR fFf" style="min-height: 1px;">
     <q-header elevated class="bg-primary text-white" height-hint="98">
       <q-toolbar>
         <q-toolbar-title>
-          <div class="title">Epidemie-Simulation</div>
+          <div class="title">Version: {{ currentVersion }}</div>
 
           <div class="obedienceprogress">
             Gehorsam der Bevölkerung:
@@ -46,14 +46,15 @@ export default defineComponent({
             <q-linear-progress stripe rounded size="14px" :value="obedience" :color="obedienceColor" class="q-mt-sm" />
           </div>
           <div class="date">Tag: {{ day }}</div>
+          <div class="centeredtitle">🦠 Epidemie-Simulation 🧬</div>
         </q-toolbar-title>
 
         <q-btn dense flat round icon="menu" @click="toggleRightDrawer" />
       </q-toolbar>
 
       <q-tabs align="center">
-        <q-route-tab to="states" label="Bundesländer" @click="fillStates()" :disable="!simulationstarted" />
-        <q-route-tab to="cities" label="Städte" @click="fillCities()" :disable="!simulationstarted" />
+        <q-route-tab to="states" label="Bundesländer" @click="fillStates()" :disable="!simulationStarted" />
+        <q-route-tab to="cities" label="Städte" @click="fillCities()" :disable="!simulationStarted" />
       </q-tabs>
     </q-header>
 
@@ -84,9 +85,9 @@ export default defineComponent({
           <div class="text-h6">Fehler</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <center>Simulation wurde nicht gestartet!</center>
-          <span>Vermutlich läuft die Serveranwendung im Hintergrund nicht.</span>
+        <q-card-section class="q-pt-none" align="center">
+          Simulation wurde nicht gestartet!<br>
+          Vermutlich läuft die Serveranwendung im Hintergrund nicht.
         </q-card-section>
 
         <q-card-actions align="right">
@@ -243,16 +244,21 @@ export default defineComponent({
       </q-card>
     </q-dialog>
 
-    <q-page-container style="width: 73%; margin-left: 27%; margin-top: 0.5%">
+    <q-page-container style="width: 73%; margin-left: 27%; margin-top: 0.5%;">
       <div class="sliderbundle">
         <q-badge color="primary" style="margin-right: 60%">
           Geschwindigkeit der Tage:
         </q-badge>
         <q-slider @change="changeSpeed(model)" class="q-mt-xl" v-model="model" color="blue" markers
-          :marker-labels="fnMarkerLabel" :min="0" :max="10" :disable="!simulationstarted"
+          :marker-labels="fnMarkerLabel" :min="0" :max="10" :disable="!simulationStarted"
           style="margin-top: 0%; margin-left: 0.1%; float: left" />
-        <div v-if="!simulationstarted" class="controlling">
-          <q-btn id="simulation-button" label="Start Simulation" color="positive" @click="startSimulation()" />
+        <div class="controlling">
+          <q-btn id="simulation-button" label="Simulation starten" color="positive" @click="startSimulation()"
+            :disable="simulationStarted" :loading="simulationStarted">
+            <template v-slot:loading>
+              <q-spinner-gears />
+            </template>
+          </q-btn>
         </div>
       </div>
 
@@ -306,23 +312,23 @@ export default defineComponent({
               <div class="panelsection">
                 <div class="panelelement">
                   Impfstoff:
-                  <span v-if="vaccinationstatuscode == 0" style="color: red">{{
-                      vaccinationstatus
+                  <span v-if="vaccinationStatusCode == 0" style="color: red">{{
+                      vaccinationStatus
                   }}</span>
-                  <span v-else-if="vaccinationstatuscode == 1" style="color: orange">{{ vaccinationstatus }}</span>
+                  <span v-else-if="vaccinationStatusCode == 1" style="color: darkgoldenrod">{{ vaccinationStatus }}</span>
                   <span v-else-if="
-                    vaccinationstatuscode == 2 || vaccinationstatuscode == 3
-                  " style="color: green">{{ vaccinationstatus }}</span>
+                    vaccinationStatusCode == 2 || vaccinationStatusCode == 3
+                  " style="color: green">{{ vaccinationStatus }}</span>
                 </div>
                 <div class="panelelement">
                   Medikamente:
-                  <span v-if="medicationstatuscode == 0" style="color: red">{{
-                      medicationstatus
+                  <span v-if="medicationStatusCode == 0" style="color: red">{{
+                      medicationStatus
                   }}</span>
-                  <span v-else-if="medicationstatuscode == 1" style="color: orange">{{ medicationstatus }}</span>
+                  <span v-else-if="medicationStatusCode == 1" style="color: darkgoldenrod">{{ medicationStatus }}</span>
                   <span v-else-if="
-                    medicationstatuscode == 2 || medicationstatuscode == 3
-                  " style="color: green">{{ medicationstatus }}</span>
+                    medicationStatusCode == 2 || medicationStatusCode == 3
+                  " style="color: green">{{ medicationStatus }}</span>
                 </div>
               </div>
             </div>
@@ -331,14 +337,15 @@ export default defineComponent({
         </div>
       </q-page-sticky>
 
-      <div class="measureContainer">
-        Maßnahmen aktiv: {{ measureList.length }}
-        <div v-for="(measureListElement, index) in measureList" :key="measureListElement.measure">
-          <MeasureElement :measureProp="measureListElement" :measureIndex="index" :uuid="this.backendUuid"
-            @removeelement-index="removeElement()" />
-        </div>
-      </div>
+
       <div class="map">
+        <div class="measureContainer">
+          Maßnahmen aktiv: {{ measureList.length }}
+          <div v-for="(measureListElement, index) in measureList" :key="measureListElement.measure">
+            <MeasureElement :measureProp="measureListElement" :measureIndex="index" :uuid="this.backendUuid"
+              @removeelement-index="removeElement()" @toggle-social-distancing-button="toggleSocialDistancing()" />
+          </div>
+        </div>
         <img v-if="status == 'states'" alt="Map of Germany" src="../../assets/states.png" />
         <img v-if="status == 'cities'" alt="Map of Germany" src="../../assets/cities.png" />
         <div class="bottommenu">
@@ -359,17 +366,17 @@ export default defineComponent({
             <div class="pauseBtnBox">
               <q-badge color="primary">Pause</q-badge>
               <q-btn round color="negative" icon="pan_tool" @click="pauseSimulation(true)"
-                :disable="!simulationstarted && false" />
+                :disable="!simulationStarted && false" />
             </div>
 
             <div class="pauseBtnBox">
               <q-badge color="primary">Weiter</q-badge>
-              <q-btn round color="positive" icon="done" @click="pauseSimulation(false)" :disable="!simulationstarted" />
+              <q-btn round color="positive" icon="done" @click="pauseSimulation(false)" :disable="!simulationStarted" />
             </div>
 
             <div class="pauseBtnBox">
               <q-badge color="primary">Beenden</q-badge>
-              <q-btn round color="black" icon="logout" @click="endSimulation()" :disable="!simulationstarted" />
+              <q-btn round color="black" icon="logout" @click="endSimulation()" :disable="!simulationStarted" />
             </div>
           </div>
 
@@ -383,27 +390,27 @@ export default defineComponent({
           <div class="column-footer">Maßnahmen</div>
           <div class="column-footer">
             <q-btn v-if="
-              this.vaccinationstatuscode == 0 ||
-              this.vaccinationstatuscode == 1
-            " id="vaccinationButton" :loading="vaccinationbuttonloading" color="primary"
-              label="Start der Impfstoffentwicklung" @click="activateVaccinationButton()"
-              :disable="!simulationstarted" />
-            <q-btn v-if="this.vaccinationstatuscode == 2" id="vaccinationButton" :loading="vaccinationbuttonloading"
-              color="green" label="Start der Impfkamagne" @click="activateVaccinationButton()"
-              :disable="!simulationstarted" />
+              this.vaccinationStatusCode == 0 ||
+              this.vaccinationStatusCode == 1
+            " id="vaccinationButton" :loading="vaccinationButtonLoading" color="primary"
+              label="Start der Impfstoffentwicklung 💉" @click="activateVaccinationButton()"
+              :disable="!simulationStarted" />
+            <q-btn v-if="this.vaccinationStatusCode == 2" id="vaccinationButton" :loading="vaccinationButtonLoading"
+              color="green" label="Start der Impfkamagne 💉" @click="activateVaccinationButton()"
+              :disable="!simulationStarted" />
           </div>
           <div class="column-footer">
             <q-btn v-if="
-              this.medicationstatuscode == 0 || this.medicationstatuscode == 1
-            " :id="medicationButton" :loading="medicationbuttonloading" color="primary"
-              label="Start der Medikamentenentwicklung" @click="activateMedicationButton()"
-              :disable="!simulationstarted" />
-            <q-btn v-if="this.medicationstatuscode == 2" :id="medicationButton" :loading="medicationbuttonloading"
-              color="green" label="Start der Medikamentenkampagne" @click="activateMedicationButton()"
-              :disable="!simulationstarted" />
+              this.medicationStatusCode == 0 || this.medicationStatusCode == 1
+            " :id="medicationButton" :loading="medicationButtonLoading" color="primary"
+              label="Start der Medikamentenentwicklung 💊" @click="activateMedicationButton()"
+              :disable="!simulationStarted" />
+            <q-btn v-if="this.medicationStatusCode == 2" :id="medicationButton" :loading="medicationButtonLoading"
+              color="green" label="Start der Medikamentenkampagne 💊" @click="activateMedicationButton()"
+              :disable="!simulationStarted" />
           </div>
           <div class="column-footer">
-            <q-btn-dropdown color="primary" label="Kontaktbeschränkungen" :disable="!simulationstarted">
+            <q-btn-dropdown color="primary" label="Kontaktbeschränkungen" :disable="!simulationStarted">
               <q-list>
                 <q-item clickable v-close-popup @click="this.alertContactRestrictionsCountry = true">
                   <q-item-section>
@@ -426,8 +433,8 @@ export default defineComponent({
             </q-btn-dropdown>
           </div>
           <div class="column-footer">
-            <q-btn color="primary" label="Abstandsregeln erlassen" @click="startSocialDistancingAlert()"
-              :disable="!simulationstarted" />
+            <q-btn v-if="!this.socialDistancingActivated" color="primary" label="Abstandsregeln erlassen"
+              @click="startSocialDistancingAlert()" :disable="!simulationStarted" />
           </div>
         </q-toolbar-title>
       </q-toolbar>

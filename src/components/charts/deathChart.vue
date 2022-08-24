@@ -7,11 +7,11 @@ export default defineComponent({
   setup() {
     const series = ref([
         {
-          name: 'Deaths',
+          name: 'Tote',
           data: [],
         },
         {
-          name: 'Cases',
+          name: 'Neuinfektionen',
           data: [],
         },
     ]);
@@ -57,11 +57,11 @@ export default defineComponent({
 
       series.value = [
         {
-          name: 'Deaths',
+          name: 'Tote',
           data: newDeathData,
         },
         {
-          name: 'cases',
+          name: 'Neuinfektionen',
           data: newCaseData,
         },
       ];

@@ -17,14 +17,14 @@ export default defineComponent({
     function removeElement() {
       emit("removeelement-index", measureIndex.value);
 
-      console.log(measureProp.value.region);
-
       if (measureProp.value.measure == "Abstandsregeln") {
         axios
           .delete(`/api/simulation/${uuid.value}/measure/socialdistancing`)
           .catch(function (error) {
             console.log(error);
+            return;
           });
+        emit("toggle-social-distancing-button");
       } else if (measureProp.value.region == "country") {
         axios
           .delete(`/api/simulation/${uuid.value}/measure/countryrestrictions`, {
