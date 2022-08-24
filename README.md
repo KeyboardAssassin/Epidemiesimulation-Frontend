@@ -2,7 +2,7 @@
 ![Epidemiesimulation Frontned](https://i.ibb.co/8YVf770/Frontend.png)
 
 ## Konzeption und Implementierung einer Epidemiesimulation 
-![Frontend Banner](https://img.shields.io/github/last-commit/keyboardassassin/Epidemiesimulation)
+![Frontend Banner](https://img.shields.io/github/last-commit/keyboardassassin/Epidemiesimulation-Frontend)
 
 A frontend for this simulation is created in this repository to match the [backend component](https://github.com/KeyboardAssassin/Epidemiesimulation).
 
