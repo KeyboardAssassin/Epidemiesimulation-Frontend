@@ -52,4 +52,4 @@ See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quas
 
 ## Preview
 
-![enter image description here](https://i.ibb.co/0268HyN/Simulation-1.png)
+![enter image description here](https://i.ibb.co/Zgb7HHN/Epidemiesimulation-preview.png)
