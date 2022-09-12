@@ -43,6 +43,7 @@ export default defineComponent({
         xaxis: {
           categories: [],
         },
+
     });
 
     function appendDeathList(amountOfNewDeaths, amountOfNewCases) {

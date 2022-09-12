@@ -149,6 +149,8 @@ export const useMain = () => {
   const restrictionsInputState = ref("");
   const restrictionsInput = ref(0);
   const obedience = ref(1);
+  const obedienceUpperBound = ref(0.7);
+  const obedienceLowerBound = ref(0.3);
   const obedienceColor = ref("positive");
   const measureList = ref([]);
   const pagination = {
@@ -508,18 +510,18 @@ export const useMain = () => {
           return;
         }
         
-        if (obedience.value > 0.7 && response.data > 0.7) {
+        if (obedience.value > obedienceUpperBound.value && response.data > obedienceUpperBound.value) {
           obedienceColor.value = "positive";
         }
-        if (obedience.value < 0.7 && response.data > 0.7) {
+        if (obedience.value < obedienceUpperBound.value && response.data > obedienceUpperBound.value) {
           notifySuccess(
             "Der Gehorsam deiner Bevölkerung ist wieder über 70% !"
           );
         }
-        if (obedience.value > 0.3 && response.data < 0.3) {
+        if (obedience.value > obedienceLowerBound.value && response.data < obedienceLowerBound.value) {
           obedienceColor.value = "negative";
           notifyError("Achtung der Gehorsam ist nun unter 30% !");
-        } else if (obedience.value > 0.7 && response.data < 0.7) {
+        } else if (obedience.value > obedienceUpperBound.value && response.data < obedienceUpperBound.value) {
           obedienceColor.value = "warning";
         }
         obedience.value = response.data;
